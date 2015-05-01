@@ -25,9 +25,10 @@ import org.reactivestreams.Subscriber;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 class MongoIterablePublisher<TResult> implements Publisher<TResult> {
 
@@ -43,10 +44,14 @@ class MongoIterablePublisher<TResult> implements Publisher<TResult> {
     }
 
     private class AsyncBatchCursorSubscription extends SubscriptionSupport<TResult> {
-        private final AtomicBoolean requestedBatchCursorLock = new AtomicBoolean();
-        private final AtomicBoolean bufferProcessingLock = new AtomicBoolean();
-        private final AtomicBoolean batchCursorNextLock = new AtomicBoolean();
-        private final AtomicBoolean cursorCompleted = new AtomicBoolean();
+
+        private final Lock booleanLock = new ReentrantLock(false);
+
+        private boolean requestedBatchCursor;
+        private boolean isReading;
+        private boolean isProcessing;
+        private boolean cursorCompleted;
+
         private final AtomicReference<AsyncBatchCursor<TResult>> batchCursor = new AtomicReference<AsyncBatchCursor<TResult>>();
         private final AtomicLong wanted = new AtomicLong();
         private final ConcurrentLinkedQueue<TResult> resultsQueue = new ConcurrentLinkedQueue<TResult>();
@@ -58,27 +63,20 @@ class MongoIterablePublisher<TResult> implements Publisher<TResult> {
         @Override
         protected void doRequest(final long n) {
             wanted.addAndGet(n);
-            if (requestedBatchCursorLock.compareAndSet(false, true)) {
-                if (n <= 1) {
-                    mongoIterable.batchSize(2);
-                } else if (n < Integer.MAX_VALUE) {
-                    mongoIterable.batchSize((int) n);
-                } else {
-                    mongoIterable.batchSize(Integer.MAX_VALUE);
+
+            booleanLock.lock();
+            boolean mustGetCursor = false;
+            try {
+                if (!requestedBatchCursor) {
+                    requestedBatchCursor = true;
+                    mustGetCursor = true;
                 }
-                mongoIterable.batchCursor(new SingleResultCallback<AsyncBatchCursor<TResult>>() {
-                    @Override
-                    public void onResult(final AsyncBatchCursor<TResult> result, final Throwable t) {
-                        if (t != null) {
-                            onError(t);
-                        } else if (result != null) {
-                            batchCursor.set(result);
-                            getNextBatch();
-                        } else {
-                            onError(new MongoException("Unexpected error, no AsyncBatchCursor returned from the MongoIterable."));
-                        }
-                    }
-                });
+            } finally {
+                booleanLock.unlock();
+            }
+
+            if (mustGetCursor) {
+                getBatchCursor();
             } else if (batchCursor.get() != null) { // we have the batch cursor so start to process the resultsQueue
                 processResultsQueue();
             }
@@ -93,71 +91,125 @@ class MongoIterablePublisher<TResult> implements Publisher<TResult> {
             }
         }
 
-        void getNextBatch() {
-            log("getNextBatch");
-            if (batchCursorNextLock.compareAndSet(false, true)) {
-                final AsyncBatchCursor<TResult> cursor = batchCursor.get();
-                if (cursor.isClosed()) {
-                    cursorCompleted.set(true);
-                    batchCursorNextLock.set(false);
-                    processResultsQueue();
-                } else {
-                    int batchSize = wanted.get() > Integer.MAX_VALUE ? Integer.MAX_VALUE : wanted.intValue();
-                    cursor.setBatchSize(batchSize);
-                    cursor.next(new SingleResultCallback<List<TResult>>() {
-                        @Override
-                        public void onResult(final List<TResult> result, final Throwable t) {
-                            if (t != null) {
-                                onError(t);
-                                batchCursorNextLock.set(false);
-                            } else {
-                                if (result != null) {
-                                    resultsQueue.addAll(result);
-                                } else {
-                                    cursorCompleted.set(true);
-                                }
-                                batchCursorNextLock.set(false);
-                                processResultsQueue();
-                            }
-                        }
-                    });
+        private void processResultsQueue() {
+            booleanLock.lock();
+            boolean mustProcess = false;
+            try {
+                if (!isProcessing) {
+                    isProcessing = true;
+                    mustProcess = true;
+                }
+            } finally {
+                booleanLock.unlock();
+            }
+
+            if (mustProcess) {
+                boolean mustGetAnotherBatch = false;
+                long i = wanted.get();
+                while (i > 0) {
+                    TResult item = resultsQueue.poll();
+                    if (item == null) {
+                        mustGetAnotherBatch = true;
+                        break;
+                    } else {
+                        onNext(item);
+                        i = wanted.decrementAndGet();
+                    }
+                }
+
+                if (cursorCompleted && resultsQueue.size() == 0) {
+                    onComplete();
+                }
+
+                booleanLock.lock();
+                try {
+                    isProcessing = false;
+                } finally {
+                    booleanLock.unlock();
+                }
+
+                if (mustGetAnotherBatch) {
+                    getNextBatch();
                 }
             }
         }
 
-        /**
-         * Original implementation from RatPack
-         */
-        void processResultsQueue() {
-            if (bufferProcessingLock.compareAndSet(false, true)) {
-                try {
-                    long i = wanted.get();
-                    while (i > 0) {
-                        TResult item = resultsQueue.poll();
-                        if (item == null) {
-                            // Nothing left to process
-                            break;
+        private void getNextBatch() {
+            log("getNextBatch");
+
+            booleanLock.lock();
+            boolean mustRead = false;
+            try {
+                if (!isReading && !cursorCompleted) {
+                    isReading = true;
+                    mustRead = true;
+                }
+            } finally {
+                booleanLock.unlock();
+            }
+
+            if (mustRead) {
+                final AsyncBatchCursor<TResult> cursor = batchCursor.get();
+                cursor.setBatchSize(getBatchSize());
+                cursor.next(new SingleResultCallback<List<TResult>>() {
+                    @Override
+                    public void onResult(final List<TResult> result, final Throwable t) {
+                        booleanLock.lock();
+                        try {
+                            isReading = false;
+                            if (t == null && result == null | cursor.isClosed()) {
+                                cursorCompleted = true;
+                            }
+                        } finally {
+                            booleanLock.unlock();
+                        }
+
+                        if (t != null) {
+                            onError(t);
                         } else {
-                            onNext(item);
-                            i = wanted.decrementAndGet();
+                            if (result != null) {
+                                resultsQueue.addAll(result);
+                            }
+                            processResultsQueue();
                         }
                     }
-                    if (cursorCompleted.get()) {
-                        onComplete();  // Cursor has completed and there are no more items left to process
-                    }
-                } finally {
-                    bufferProcessingLock.set(false);
-                }
+                });
+            }
+        }
 
-                if (!cursorCompleted.get() && wanted.get() > resultsQueue.size()) {
-                    getNextBatch();
-                } else if (resultsQueue.peek() != null) {
-                    if (wanted.get() > 0) {
-                        processResultsQueue();
-                    } else if (cursorCompleted.get()) {
-                        onComplete();
+        private void getBatchCursor() {
+            mongoIterable.batchSize(getBatchSize());
+            mongoIterable.batchCursor(new SingleResultCallback<AsyncBatchCursor<TResult>>() {
+                @Override
+                public void onResult(final AsyncBatchCursor<TResult> result, final Throwable t) {
+                    if (t != null) {
+                        onError(t);
+                    } else if (result != null) {
+                        batchCursor.set(result);
+                        getNextBatch();
+                    } else {
+                        onError(new MongoException("Unexpected error, no AsyncBatchCursor returned from the MongoIterable."));
                     }
                 }
+            });
+        }
+
+        /**
+         * Returns the batchSize to be used with the cursor.
+         *
+         * <p>Anything less than 2 would close the cursor so that is the minimum batchSize and `Integer.MAX_VALUE` is the maximum
+         * batchSize.</p>
+         *
+         * @return the batchSize to use
+         */
+        private int getBatchSize() {
+            long requested = wanted.get();
+            if (requested <= 1) {
+                return 2;
+            } else if (requested < Integer.MAX_VALUE) {
+                return (int) requested;
+            } else {
+                return Integer.MAX_VALUE;
             }
         }
     }
