@@ -21,6 +21,8 @@ import com.mongodb.Function
 import com.mongodb.async.AsyncBatchCursor
 import com.mongodb.async.SingleResultCallback
 import com.mongodb.async.client.MongoIterable
+import com.mongodb.async.client.Observer
+import com.mongodb.async.client.Subscription
 import org.bson.Document
 import org.reactivestreams.Publisher
 import org.reactivestreams.tck.PublisherVerification
@@ -30,6 +32,8 @@ import org.testng.annotations.BeforeClass
 
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+
+import static com.mongodb.async.client.SubscriptionHelpers.subscribeToMongoIterable
 
 @SuppressWarnings(['CloseWithoutCloseable', 'UnusedMethodParameter', 'EmptyMethod'])
 class MongoIterablePublisherVerification extends PublisherVerification<Document> {
@@ -98,6 +102,11 @@ class MongoIterablePublisherVerification extends PublisherVerification<Document>
                     @Override
                     void close() { }
                 }, null)
+            }
+
+            @Override
+            Subscription subscribe(final Observer<Integer> observer) {
+                subscribeToMongoIterable(this, observer);
             }
         })
     }

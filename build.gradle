@@ -49,10 +49,10 @@ configure(subprojects.findAll { it.name != 'util' }) {
     targetCompatibility = JavaVersion.VERSION_1_6
 
     repositories {
+        mavenLocal()
         maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
         jcenter()
         mavenCentral()
-        mavenLocal()
     }
 
     dependencies {

@@ -16,50 +16,31 @@
 
 package com.mongodb.reactivestreams.client;
 
+import com.mongodb.Block;
+import com.mongodb.Function;
 import com.mongodb.async.SingleResultCallback;
+import com.mongodb.async.client.Observer;
+import com.mongodb.async.client.Subscription;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import static com.mongodb.async.client.SubscriptionHelpers.subscribeToSingleItemBlock;
 
 abstract class SingleResultPublisher<TResult> implements Publisher<TResult> {
 
     @Override
-    public void subscribe(final Subscriber<? super TResult> s) {
-        new SingleResultSubscription(s).start();
-    }
-
-    SingleResultCallback<TResult> getCallback(final SubscriptionSupport<TResult> subscription) {
-        return new SingleResultCallback<TResult>() {
+    public void subscribe(final Subscriber<? super TResult> subscriber) {
+        subscriber.onSubscribe(new AsyncSubscriptionAdapter<TResult>(new Function<Observer<TResult>, Subscription>() {
             @Override
-            public void onResult(final TResult result, final Throwable t) {
-                subscription.log("result - " + result + " : " + t);
-                if (t != null) {
-                    subscription.onError(t);
-                } else {
-                    if (result != null) {
-                        subscription.onNext(result);
+            public Subscription apply(final Observer<TResult> observer) {
+                return subscribeToSingleItemBlock(new Block<SingleResultCallback<TResult>>() {
+                    @Override
+                    public void apply(final SingleResultCallback<TResult> callback) {
+                        execute(callback);
                     }
-                    subscription.onComplete();
-                }
+                }, observer);
             }
-        };
-    }
-
-    private class SingleResultSubscription extends SubscriptionSupport<TResult> {
-        private final AtomicBoolean operationCompleted = new AtomicBoolean();
-
-        public SingleResultSubscription(final Subscriber<? super TResult> subscriber) {
-            super(subscriber);
-        }
-
-        @Override
-        protected void doRequest(final long n) {
-            log("doRequest : " + n);
-            if (operationCompleted.compareAndSet(false, true)) {
-                execute(getCallback(this));
-            }
-        }
+        }, subscriber));
     }
 
     abstract void execute(SingleResultCallback<TResult> callback);

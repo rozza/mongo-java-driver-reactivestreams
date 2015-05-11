@@ -24,12 +24,15 @@ import spock.lang.Specification
 
 import java.util.concurrent.TimeUnit
 
+import static com.mongodb.async.client.SubscriptionHelpers.subscribeToMongoIterable;
+
 class MongoIterablePublisherSpecification extends Specification {
 
     def 'should be cold and not execute the batchCursor until request is called'() {
         given:
         def subscriber = new Fixture.ObservableSubscriber()
         def mongoIterable = Mock(MongoIterable)
+        mongoIterable.subscribe(_) >> { subscribeToMongoIterable(mongoIterable, it[0]); }
 
         when:
         def publisher = new MongoIterablePublisher(mongoIterable)
@@ -59,13 +62,13 @@ class MongoIterablePublisherSpecification extends Specification {
         1 * mongoIterable.batchSize(100)
         1 * mongoIterable.batchCursor(_)
 
-        when: 'Amounts greater than 1024 are batched'
+        when: 'Amounts greater than Integer.MAX_VALUE are batched'
         subscriber = new Fixture.ObservableSubscriber()
         publisher.subscribe(subscriber)
-        subscriber.getSubscription().request(10000)
+        subscriber.getSubscription().request(Long.MAX_VALUE)
 
         then:
-        1 * mongoIterable.batchSize(1024)
+        1 * mongoIterable.batchSize(Integer.MAX_VALUE)
         1 * mongoIterable.batchCursor(_)
     }
 
@@ -75,6 +78,7 @@ class MongoIterablePublisherSpecification extends Specification {
         def mongoIterable = Stub(MongoIterable) {
             batchCursor(_) >> { args -> args[0].onResult(null, new MongoException('failure')) }
         }
+        mongoIterable.subscribe(_) >> { subscribeToMongoIterable(mongoIterable, it[0]); }
 
         when:
         new MongoIterablePublisher(mongoIterable).subscribe(subscriber)
@@ -96,6 +100,7 @@ class MongoIterablePublisherSpecification extends Specification {
         def mongoIterable = Stub(MongoIterable) {
             batchCursor(_) >> { args -> args[0].onResult(null, null) }
         }
+        mongoIterable.subscribe(_) >> { subscribeToMongoIterable(mongoIterable, it[0]); }
 
         when:
         new MongoIterablePublisher(mongoIterable).subscribe(subscriber)
@@ -128,6 +133,7 @@ class MongoIterablePublisherSpecification extends Specification {
         def mongoIterable = Stub(MongoIterable) {
             batchCursor(_) >> { args -> args[0].onResult(cursor(), null) }
         }
+        mongoIterable.subscribe(_) >> { subscribeToMongoIterable(mongoIterable, it[0]); }
 
         when:
         new MongoIterablePublisher(mongoIterable).subscribe(subscriber)
