@@ -21,6 +21,8 @@ import com.mongodb.async.client.Observer;
 import com.mongodb.async.client.Subscription;
 import org.reactivestreams.Subscriber;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 class ObservableToPublisher<TResult> implements org.reactivestreams.Publisher<TResult> {
 
     private final Observable<TResult> observable;
@@ -35,7 +37,7 @@ class ObservableToPublisher<TResult> implements org.reactivestreams.Publisher<TR
             @Override
             public void onSubscribe(final Subscription subscription) {
                 subscriber.onSubscribe(new org.reactivestreams.Subscription() {
-                    private boolean cancelled;
+                    private final AtomicBoolean cancelled = new AtomicBoolean();
                     @Override
                     public void request(final long n) {
                         if (!subscription.isUnsubscribed() && n < 1) {
@@ -49,9 +51,8 @@ class ObservableToPublisher<TResult> implements org.reactivestreams.Publisher<TR
 
                     @Override
                     public void cancel() {
-                        if (!cancelled) {
+                        if (!cancelled.getAndSet(true)) {
                             subscription.unsubscribe();
-                            cancelled = true;
                         }
                     }
                 });
