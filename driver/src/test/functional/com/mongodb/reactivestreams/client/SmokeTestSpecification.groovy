@@ -16,7 +16,6 @@
 
 package com.mongodb.reactivestreams.client
 
-import com.mongodb.MongoException
 import com.mongodb.MongoNamespace
 import com.mongodb.client.model.IndexModel
 import com.mongodb.diagnostics.logging.Loggers
@@ -152,7 +151,7 @@ class SmokeTestSpecification extends FunctionalSpecification {
         run('get database names', mongoClient.&listDatabaseNames)
 
         then:
-        thrown(MongoException)
+        thrown(IllegalStateException)
     }
 
     @SuppressWarnings('BusyWait')

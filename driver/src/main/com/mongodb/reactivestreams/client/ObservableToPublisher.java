@@ -49,10 +49,8 @@ class ObservableToPublisher<TResult> implements org.reactivestreams.Publisher<TR
                         } else {
                             try {
                                 subscription.request(n);
-                            } catch (MongoException e) {
-                                subscriber.onError(e);
-                            } catch (Exception e) {
-                                subscriber.onError(new MongoException("An error occurred requesting data from the publisher", e));
+                            } catch (Throwable t) {
+                                subscriber.onError(t);
                             }
                         }
                     }
