@@ -37,6 +37,7 @@ import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+import com.mongodb.reactivestreams.client.internal.ObservableToPublisher;
 import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -48,7 +49,7 @@ import java.util.List;
 import static com.mongodb.assertions.Assertions.notNull;
 import static com.mongodb.async.client.Observables.observe;
 import static com.mongodb.async.client.Observables.observeAndFlatten;
-import static com.mongodb.reactivestreams.client.PublisherHelper.voidToSuccessCallback;
+import static com.mongodb.reactivestreams.client.internal.PublisherHelper.voidToSuccessCallback;
 
 class MongoCollectionImpl<TDocument> implements MongoCollection<TDocument> {
 

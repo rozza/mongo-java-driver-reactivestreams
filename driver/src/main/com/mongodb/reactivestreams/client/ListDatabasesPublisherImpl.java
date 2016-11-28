@@ -16,6 +16,7 @@
 
 package com.mongodb.reactivestreams.client;
 
+import com.mongodb.reactivestreams.client.internal.ObservableToPublisher;
 import org.reactivestreams.Subscriber;
 
 import java.util.concurrent.TimeUnit;

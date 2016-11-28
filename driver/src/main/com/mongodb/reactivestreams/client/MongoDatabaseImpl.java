@@ -23,6 +23,7 @@ import com.mongodb.WriteConcern;
 import com.mongodb.async.SingleResultCallback;
 import com.mongodb.client.model.CreateCollectionOptions;
 import com.mongodb.client.model.CreateViewOptions;
+import com.mongodb.reactivestreams.client.internal.ObservableToPublisher;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
@@ -32,7 +33,7 @@ import java.util.List;
 
 import static com.mongodb.assertions.Assertions.notNull;
 import static com.mongodb.async.client.Observables.observe;
-import static com.mongodb.reactivestreams.client.PublisherHelper.voidToSuccessCallback;
+import static com.mongodb.reactivestreams.client.internal.PublisherHelper.voidToSuccessCallback;
 
 class MongoDatabaseImpl implements MongoDatabase {
 
@@ -187,5 +188,10 @@ class MongoDatabaseImpl implements MongoDatabase {
                 wrapped.createView(viewName, viewOn, pipeline, createViewOptions, voidToSuccessCallback(callback));
             }
         }));
+    }
+
+    @Override
+    public com.mongodb.async.client.MongoDatabase getAsyncMongoDatabase() {
+        return wrapped;
     }
 }

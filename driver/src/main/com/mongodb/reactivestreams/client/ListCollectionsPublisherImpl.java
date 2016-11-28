@@ -16,6 +16,7 @@
 
 package com.mongodb.reactivestreams.client;
 
+import com.mongodb.reactivestreams.client.internal.ObservableToPublisher;
 import org.bson.conversions.Bson;
 import org.reactivestreams.Subscriber;
 

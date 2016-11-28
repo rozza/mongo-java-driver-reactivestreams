@@ -17,6 +17,7 @@
 package com.mongodb.reactivestreams.client;
 
 import com.mongodb.async.client.MongoClientSettings;
+import com.mongodb.reactivestreams.client.internal.ObservableToPublisher;
 import org.bson.Document;
 import org.reactivestreams.Publisher;
 

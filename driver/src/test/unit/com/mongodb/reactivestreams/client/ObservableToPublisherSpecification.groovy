@@ -20,6 +20,7 @@ import com.mongodb.MongoException
 import com.mongodb.async.client.Observable
 import com.mongodb.async.client.Observer
 import com.mongodb.async.client.Subscription
+import com.mongodb.reactivestreams.client.internal.ObservableToPublisher
 import spock.lang.Specification
 
 class ObservableToPublisherSpecification extends Specification {

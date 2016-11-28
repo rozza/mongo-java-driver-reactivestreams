@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.mongodb.reactivestreams.client;
+package com.mongodb.reactivestreams.client.internal;
 
 import com.mongodb.async.client.Observable;
 import com.mongodb.async.client.Observer;
@@ -23,7 +23,7 @@ import org.reactivestreams.Subscriber;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-class ObservableToPublisher<TResult> implements org.reactivestreams.Publisher<TResult> {
+public class ObservableToPublisher<TResult> implements org.reactivestreams.Publisher<TResult> {
 
     private final Observable<TResult> observable;
 

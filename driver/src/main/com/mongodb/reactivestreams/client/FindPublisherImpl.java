@@ -20,6 +20,7 @@ import com.mongodb.Block;
 import com.mongodb.CursorType;
 import com.mongodb.async.SingleResultCallback;
 import com.mongodb.client.model.Collation;
+import com.mongodb.reactivestreams.client.internal.ObservableToPublisher;
 import org.bson.conversions.Bson;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
