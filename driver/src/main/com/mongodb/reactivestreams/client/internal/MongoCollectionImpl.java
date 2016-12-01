@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.mongodb.reactivestreams.client;
+package com.mongodb.reactivestreams.client.internal;
 
 import com.mongodb.Block;
 import com.mongodb.MongoNamespace;
@@ -37,7 +37,13 @@ import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-import com.mongodb.reactivestreams.client.internal.ObservableToPublisher;
+import com.mongodb.reactivestreams.client.AggregatePublisher;
+import com.mongodb.reactivestreams.client.DistinctPublisher;
+import com.mongodb.reactivestreams.client.FindPublisher;
+import com.mongodb.reactivestreams.client.ListIndexesPublisher;
+import com.mongodb.reactivestreams.client.MapReducePublisher;
+import com.mongodb.reactivestreams.client.MongoCollection;
+import com.mongodb.reactivestreams.client.Success;
 import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -51,7 +57,8 @@ import static com.mongodb.async.client.Observables.observe;
 import static com.mongodb.async.client.Observables.observeAndFlatten;
 import static com.mongodb.reactivestreams.client.internal.PublisherHelper.voidToSuccessCallback;
 
-class MongoCollectionImpl<TDocument> implements MongoCollection<TDocument> {
+
+final class MongoCollectionImpl<TDocument> implements MongoCollection<TDocument> {
 
     private final com.mongodb.async.client.MongoCollection<TDocument> wrapped;
 

@@ -23,7 +23,7 @@ import org.reactivestreams.Subscriber;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class ObservableToPublisher<TResult> implements org.reactivestreams.Publisher<TResult> {
+class ObservableToPublisher<TResult> implements org.reactivestreams.Publisher<TResult> {
 
     private final Observable<TResult> observable;
 

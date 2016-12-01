@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.mongodb.reactivestreams.client;
+package com.mongodb.reactivestreams.client.internal;
 
-import com.mongodb.reactivestreams.client.internal.ObservableToPublisher;
+import com.mongodb.reactivestreams.client.ListCollectionsPublisher;
+import org.bson.conversions.Bson;
 import org.reactivestreams.Subscriber;
 
 import java.util.concurrent.TimeUnit;
@@ -24,16 +25,24 @@ import java.util.concurrent.TimeUnit;
 import static com.mongodb.assertions.Assertions.notNull;
 import static com.mongodb.async.client.Observables.observe;
 
-final class ListIndexesPublisherImpl<TResult> implements ListIndexesPublisher<TResult> {
 
-    private final com.mongodb.async.client.ListIndexesIterable<TResult> wrapped;
+final class ListCollectionsPublisherImpl<TResult> implements ListCollectionsPublisher<TResult> {
 
-    ListIndexesPublisherImpl(final com.mongodb.async.client.ListIndexesIterable<TResult> wrapped) {
+    private final com.mongodb.async.client.ListCollectionsIterable<TResult> wrapped;
+
+    ListCollectionsPublisherImpl(final com.mongodb.async.client.ListCollectionsIterable<TResult> wrapped) {
         this.wrapped = notNull("wrapped", wrapped);
     }
 
     @Override
-    public ListIndexesPublisherImpl<TResult> maxTime(final long maxTime, final TimeUnit timeUnit) {
+    public ListCollectionsPublisher<TResult> filter(final Bson filter) {
+        notNull("filter", filter);
+        wrapped.filter(filter);
+        return this;
+    }
+
+    @Override
+    public ListCollectionsPublisher<TResult> maxTime(final long maxTime, final TimeUnit timeUnit) {
         notNull("timeUnit", timeUnit);
         wrapped.maxTime(maxTime, timeUnit);
         return this;
@@ -44,4 +53,3 @@ final class ListIndexesPublisherImpl<TResult> implements ListIndexesPublisher<TR
         new ObservableToPublisher<TResult>(observe(wrapped)).subscribe(s);
     }
 }
-

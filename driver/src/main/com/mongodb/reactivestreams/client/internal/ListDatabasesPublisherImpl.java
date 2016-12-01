@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *  http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package com.mongodb.reactivestreams.client;
+package com.mongodb.reactivestreams.client.internal;
 
-import com.mongodb.reactivestreams.client.internal.ObservableToPublisher;
-import org.bson.conversions.Bson;
+import com.mongodb.reactivestreams.client.ListDatabasesPublisher;
 import org.reactivestreams.Subscriber;
 
 import java.util.concurrent.TimeUnit;
@@ -25,23 +24,16 @@ import java.util.concurrent.TimeUnit;
 import static com.mongodb.assertions.Assertions.notNull;
 import static com.mongodb.async.client.Observables.observe;
 
-final class ListCollectionsPublisherImpl<TResult> implements ListCollectionsPublisher<TResult> {
+final class ListDatabasesPublisherImpl<TResult> implements ListDatabasesPublisher<TResult> {
 
-    private final com.mongodb.async.client.ListCollectionsIterable<TResult> wrapped;
+    private final com.mongodb.async.client.ListDatabasesIterable<TResult> wrapped;
 
-    ListCollectionsPublisherImpl(final com.mongodb.async.client.ListCollectionsIterable<TResult> wrapped) {
+    ListDatabasesPublisherImpl(final com.mongodb.async.client.ListDatabasesIterable<TResult> wrapped) {
         this.wrapped = notNull("wrapped", wrapped);
     }
 
     @Override
-    public ListCollectionsPublisher<TResult> filter(final Bson filter) {
-        notNull("filter", filter);
-        wrapped.filter(filter);
-        return this;
-    }
-
-    @Override
-    public ListCollectionsPublisher<TResult> maxTime(final long maxTime, final TimeUnit timeUnit) {
+    public ListDatabasesPublisher<TResult> maxTime(final long maxTime, final TimeUnit timeUnit) {
         notNull("timeUnit", timeUnit);
         wrapped.maxTime(maxTime, timeUnit);
         return this;

@@ -16,82 +16,18 @@
 
 package com.mongodb.reactivestreams.client.gridfs
 
-import org.bson.BsonObjectId
-import org.reactivestreams.Subscriber
+import com.mongodb.async.client.gridfs.GridFSUploadStream as WrappedGridFSUploadStream
 import spock.lang.Specification
-
-import java.nio.ByteBuffer
 
 class GridFSUploadStreamSpecification extends Specification {
 
-    def subscriber = Stub(Subscriber) {
-        onSubscribe(_) >> { args -> args[0].request(100) }
-    }
-    def fileId = new BsonObjectId()
-    def content = 'file content ' as byte[]
-
     def 'should have the same methods as the wrapped GridFSUploadStream'() {
         given:
-        def wrapped = (com.mongodb.async.client.gridfs.GridFSUploadStream.methods*.name).sort()
+        def wrapped = (WrappedGridFSUploadStream.methods*.name).sort()
         def local = (GridFSUploadStream.methods*.name).sort()
 
         expect:
         wrapped == local
-    }
-
-    def 'should call the underlying getId'() {
-        when:
-        def wrapped = Mock(com.mongodb.async.client.gridfs.GridFSUploadStream) {
-            1 * getId() >> { fileId }
-        }
-        def uploadStream = new GridFSUploadStreamImpl(wrapped)
-
-        then:
-        uploadStream.getId() == fileId
-    }
-
-    def 'should call the underlying getObjectId'() {
-        when:
-        def wrapped = Mock(com.mongodb.async.client.gridfs.GridFSUploadStream) {
-            1 * getObjectId() >> { fileId.getValue() }
-        }
-        def uploadStream = new GridFSUploadStreamImpl(wrapped)
-
-        then:
-        uploadStream.getObjectId() == fileId.getValue()
-    }
-
-    def 'should call the underlying write'() {
-        when:
-        def wrapped = Mock(com.mongodb.async.client.gridfs.GridFSUploadStream) {
-            1 * write(ByteBuffer.wrap(content), _)
-        }
-        def uploadStream = new GridFSUploadStreamImpl(wrapped)
-
-        then:
-        uploadStream.write(ByteBuffer.wrap(content)).subscribe(subscriber)
-    }
-
-    def 'should call the underlying abort'() {
-        when:
-        def wrapped = Mock(com.mongodb.async.client.gridfs.GridFSUploadStream) {
-            1 * abort(_)
-        }
-        def uploadStream = new GridFSUploadStreamImpl(wrapped)
-
-        then:
-        uploadStream.abort().subscribe(subscriber)
-    }
-
-    def 'should call the underlying close'() {
-        when:
-        def wrapped = Mock(com.mongodb.async.client.gridfs.GridFSUploadStream) {
-            1 * close(_)
-        }
-        def uploadStream = new GridFSUploadStreamImpl(wrapped)
-
-        then:
-        uploadStream.close().subscribe(subscriber)
     }
 
 }

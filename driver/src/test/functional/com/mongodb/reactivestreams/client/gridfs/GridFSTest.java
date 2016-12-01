@@ -50,7 +50,6 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static com.mongodb.reactivestreams.client.Fixture.ObservableSubscriber;
 import static com.mongodb.reactivestreams.client.Fixture.getDefaultDatabaseName;
@@ -85,8 +84,10 @@ public class GridFSTest extends DatabaseTestCase {
     public void setUp() throws Throwable {
         super.setUp();
         gridFSBucket = GridFSBuckets.create(database);
-        filesCollection = initializeCollection(new MongoNamespace(getDefaultDatabaseName(), "fs.files")).withDocumentClass(BsonDocument.class);
-        chunksCollection = initializeCollection(new MongoNamespace(getDefaultDatabaseName(), "fs.chunks")).withDocumentClass(BsonDocument.class);
+        filesCollection = initializeCollection(new MongoNamespace(getDefaultDatabaseName(), "fs.files"))
+                .withDocumentClass(BsonDocument.class);
+        chunksCollection = initializeCollection(new MongoNamespace(getDefaultDatabaseName(), "fs.chunks"))
+                .withDocumentClass(BsonDocument.class);
 
         List<BsonDocument> filesDocuments = processFiles(data.getArray("files", new BsonArray()), new ArrayList<BsonDocument>());
         if (!filesDocuments.isEmpty()) {

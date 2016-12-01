@@ -19,10 +19,7 @@ package com.mongodb.reactivestreams.client.internal;
 import com.mongodb.async.SingleResultCallback;
 import com.mongodb.reactivestreams.client.Success;
 
-/**
- * A helper class for publishers
- */
-public final class PublisherHelper {
+final class PublisherHelper {
 
     /**
      * Helper to trigger Boolean SingleResultCallbacks for Void operations

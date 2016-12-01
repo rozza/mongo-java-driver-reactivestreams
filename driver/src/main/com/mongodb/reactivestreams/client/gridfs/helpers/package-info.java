@@ -15,7 +15,7 @@
  */
 
 /**
- * Contains helper classes to create {@link com.mongodb.async.client.gridfs.AsyncInputStream} and
- * {@link com.mongodb.async.client.gridfs.AsyncOutputStream}'s from external sources.
+ * Contains helper classes to create {@link com.mongodb.reactivestreams.client.gridfs.AsyncInputStream} and
+ * {@link com.mongodb.reactivestreams.client.gridfs.AsyncOutputStream}'s from external sources.
  */
 package com.mongodb.reactivestreams.client.gridfs.helpers;

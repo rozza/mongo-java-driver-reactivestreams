@@ -16,39 +16,59 @@
 
 package com.mongodb.reactivestreams.client.gridfs
 
+import com.mongodb.async.client.MongoDatabase as WrappedMongoDatabase
+import com.mongodb.async.client.gridfs.GridFSBuckets as WrappedGridFSBuckets
 import com.mongodb.reactivestreams.client.MongoDatabase
+import com.mongodb.reactivestreams.client.internal.MongoDatabaseImpl
 import spock.lang.Specification
 
 class GridFSBucketsSpecification extends Specification {
 
     def 'should have the same methods as the wrapped GridFSBuckets'() {
         given:
-        def wrapped = (com.mongodb.async.client.gridfs.GridFSBuckets.methods*.name).sort()
+        def wrapped = (WrappedGridFSBuckets.methods*.name).sort()
         def local = (GridFSBuckets.methods*.name).sort()
 
         expect:
         wrapped == local
     }
 
-    def 'should call the underlying getAsyncMongoDatabase'() {
+    def 'should call the internal getWrapped method'() {
         when:
-        def database = Mock(MongoDatabase) {
-            1 * getAsyncMongoDatabase() >> { Stub(com.mongodb.async.client.MongoDatabase) }
+        def database = Mock(MongoDatabaseImpl) {
+            1 * getWrapped() >> { Stub(WrappedMongoDatabase) }
         }
 
         then:
         GridFSBuckets.create(database)
     }
 
-    def 'should call the underlying getAsyncMongoDatabase and set the bucket name'() {
+    def 'should set the bucket name'() {
         when:
-        def database = Mock(MongoDatabase) {
-            1 * getAsyncMongoDatabase() >> { Stub(com.mongodb.async.client.MongoDatabase) }
+        def database = Mock(MongoDatabaseImpl) {
+            1 * getWrapped() >> { Stub(WrappedMongoDatabase) }
         }
 
         then:
-        def gridFSBucket = GridFSBuckets.create(database, "test")
-        gridFSBucket.getBucketName() == "test"
+        def gridFSBucket = GridFSBuckets.create(database, 'test')
+        gridFSBucket.getBucketName() == 'test'
+    }
+
+    def 'should set throw an IllegalArgumentException not passed a MongoDatabaseImpl'() {
+        given:
+        def database = Stub(MongoDatabase)
+
+        when:
+        GridFSBuckets.create(database)
+
+        then:
+        thrown(IllegalArgumentException)
+
+        when:
+        GridFSBuckets.create(database, 'test')
+
+        then:
+        thrown(IllegalArgumentException)
     }
 
 }

@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package com.mongodb.reactivestreams.client;
+package com.mongodb.reactivestreams.client.internal;
 
-import com.mongodb.reactivestreams.client.internal.ObservableToPublisher;
+import com.mongodb.client.model.Collation;
+import com.mongodb.reactivestreams.client.DistinctPublisher;
+import org.bson.conversions.Bson;
 import org.reactivestreams.Subscriber;
 
 import java.util.concurrent.TimeUnit;
@@ -24,18 +26,30 @@ import java.util.concurrent.TimeUnit;
 import static com.mongodb.assertions.Assertions.notNull;
 import static com.mongodb.async.client.Observables.observe;
 
-class ListDatabasesPublisherImpl<TResult> implements ListDatabasesPublisher<TResult> {
 
-    private final com.mongodb.async.client.ListDatabasesIterable<TResult> wrapped;
+final class DistinctPublisherImpl<TResult> implements DistinctPublisher<TResult> {
 
-    ListDatabasesPublisherImpl(final com.mongodb.async.client.ListDatabasesIterable<TResult> wrapped) {
+    private final com.mongodb.async.client.DistinctIterable<TResult> wrapped;
+
+    DistinctPublisherImpl(final com.mongodb.async.client.DistinctIterable<TResult> wrapped) {
         this.wrapped = notNull("wrapped", wrapped);
     }
 
     @Override
-    public ListDatabasesPublisher<TResult> maxTime(final long maxTime, final TimeUnit timeUnit) {
-        notNull("timeUnit", timeUnit);
+    public DistinctPublisher<TResult> filter(final Bson filter) {
+        wrapped.filter(filter);
+        return this;
+    }
+
+    @Override
+    public DistinctPublisher<TResult> maxTime(final long maxTime, final TimeUnit timeUnit) {
         wrapped.maxTime(maxTime, timeUnit);
+        return this;
+    }
+
+    @Override
+    public DistinctPublisher<TResult> collation(final Collation collation) {
+        wrapped.collation(collation);
         return this;
     }
 

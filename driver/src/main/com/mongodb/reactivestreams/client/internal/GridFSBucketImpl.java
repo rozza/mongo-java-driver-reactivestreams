@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.mongodb.reactivestreams.client.gridfs;
+package com.mongodb.reactivestreams.client.internal;
 
 import com.mongodb.Block;
 import com.mongodb.ReadConcern;
@@ -24,8 +24,12 @@ import com.mongodb.async.SingleResultCallback;
 import com.mongodb.client.gridfs.model.GridFSDownloadOptions;
 import com.mongodb.client.gridfs.model.GridFSUploadOptions;
 import com.mongodb.reactivestreams.client.Success;
-import com.mongodb.reactivestreams.client.internal.ObservableToPublisher;
-import org.bson.BsonObjectId;
+import com.mongodb.reactivestreams.client.gridfs.AsyncInputStream;
+import com.mongodb.reactivestreams.client.gridfs.AsyncOutputStream;
+import com.mongodb.reactivestreams.client.gridfs.GridFSBucket;
+import com.mongodb.reactivestreams.client.gridfs.GridFSDownloadStream;
+import com.mongodb.reactivestreams.client.gridfs.GridFSFindPublisher;
+import com.mongodb.reactivestreams.client.gridfs.GridFSUploadStream;
 import org.bson.BsonValue;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
@@ -33,15 +37,25 @@ import org.reactivestreams.Publisher;
 
 import static com.mongodb.assertions.Assertions.notNull;
 import static com.mongodb.async.client.Observables.observe;
-import static com.mongodb.reactivestreams.client.internal.GridFSHelper.toCallbackAsyncInputStream;
-import static com.mongodb.reactivestreams.client.internal.GridFSHelper.toCallbackAsyncOutputStream;
+import static com.mongodb.reactivestreams.client.internal.GridFSAsyncStreamHelper.toCallbackAsyncInputStream;
+import static com.mongodb.reactivestreams.client.internal.GridFSAsyncStreamHelper.toCallbackAsyncOutputStream;
 import static com.mongodb.reactivestreams.client.internal.PublisherHelper.voidToSuccessCallback;
 
-
-final class GridFSBucketImpl implements GridFSBucket {
+/**
+ * The internal GridFSBucket implementation.
+ *
+ * <p>This should not be considered a part of the public API.</p>
+ */
+public final class GridFSBucketImpl implements GridFSBucket {
     private final com.mongodb.async.client.gridfs.GridFSBucket wrapped;
 
-    GridFSBucketImpl(final com.mongodb.async.client.gridfs.GridFSBucket wrapped) {
+    /**
+     * The GridFSBucket constructor
+     *
+     * <p>This should not be considered a part of the public API.</p>
+     * @param wrapped the GridFSBucket
+     */
+    public GridFSBucketImpl(final com.mongodb.async.client.gridfs.GridFSBucket wrapped) {
         this.wrapped = notNull("GridFSBucket", wrapped);
     }
 
@@ -271,6 +285,5 @@ final class GridFSBucketImpl implements GridFSBucket {
             }
         }));
     }
-
 
 }

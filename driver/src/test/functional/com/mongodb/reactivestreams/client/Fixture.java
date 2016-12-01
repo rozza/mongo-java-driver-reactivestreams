@@ -40,14 +40,14 @@ public final class Fixture {
     private static final String DEFAULT_DATABASE_NAME = "JavaDriverReactiveTest";
 
     private static ConnectionString connectionString;
-    private static MongoClientImpl mongoClient;
+    private static MongoClient mongoClient;
 
     private Fixture() {
     }
 
     public static synchronized MongoClient getMongoClient() {
         if (mongoClient == null) {
-            mongoClient = (MongoClientImpl) MongoClients.create(getConnectionString());
+            mongoClient = MongoClients.create(getConnectionString());
             Runtime.getRuntime().addShutdownHook(new ShutdownHook());
         }
         return mongoClient;

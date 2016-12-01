@@ -16,6 +16,7 @@
 
 package com.mongodb.reactivestreams.client.gridfs.helpers
 
+import com.mongodb.async.client.gridfs.helpers.AsyncStreamHelper as WrappedAsyncStreamHelper
 import org.reactivestreams.Subscriber
 import spock.lang.Specification
 
@@ -29,7 +30,7 @@ class AsyncStreamHelperSpecification extends Specification {
 
     def 'should have the same methods as the wrapped AsyncStreamHelper'() {
         given:
-        def wrapped = com.mongodb.async.client.gridfs.helpers.AsyncStreamHelper.methods*.name.sort()
+        def wrapped = WrappedAsyncStreamHelper.methods*.name.sort()
         def local = AsyncStreamHelper.methods*.name.sort()
 
         expect:

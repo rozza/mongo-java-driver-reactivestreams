@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.mongodb.reactivestreams.client.gridfs;
+package com.mongodb.reactivestreams.client.internal;
 
 import com.mongodb.Block;
 import com.mongodb.async.SingleResultCallback;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import com.mongodb.client.model.Collation;
-import com.mongodb.reactivestreams.client.internal.ObservableToPublisher;
+import com.mongodb.reactivestreams.client.gridfs.GridFSFindPublisher;
 import org.bson.conversions.Bson;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;

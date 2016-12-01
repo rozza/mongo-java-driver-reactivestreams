@@ -243,11 +243,4 @@ public interface MongoDatabase {
      */
     Publisher<Success> createView(String viewName, String viewOn, List<? extends Bson> pipeline, CreateViewOptions createViewOptions);
 
-    /**
-     * Returns the underlying asynchronous MongoDatabase instance.
-     *
-     * @return the underlying asynchronous MongoDatabase instance.
-     * @since 1.3
-     */
-    com.mongodb.async.client.MongoDatabase getAsyncMongoDatabase();
 }
