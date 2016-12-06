@@ -43,7 +43,7 @@ import static com.mongodb.reactivestreams.client.internal.PublisherHelper.voidTo
  *
  * <p>This should not be considered a part of the public API.</p>
  */
-public class MongoDatabaseImpl implements MongoDatabase {
+public final class MongoDatabaseImpl implements MongoDatabase {
 
     private final com.mongodb.async.client.MongoDatabase wrapped;
 

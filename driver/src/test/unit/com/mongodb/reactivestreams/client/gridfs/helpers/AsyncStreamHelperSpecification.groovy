@@ -17,6 +17,7 @@
 package com.mongodb.reactivestreams.client.gridfs.helpers
 
 import com.mongodb.async.client.gridfs.helpers.AsyncStreamHelper as WrappedAsyncStreamHelper
+import com.mongodb.reactivestreams.client.TestSubscriber
 import org.reactivestreams.Subscriber
 import spock.lang.Specification
 
@@ -75,6 +76,58 @@ class AsyncStreamHelperSpecification extends Specification {
 
         then:
         1 * outputStream.close()
+    }
+
+    def 'should handle underlying InputStream errors'() {
+        def inputStream = Mock(InputStream)
+
+        when:
+        def subscriber = new TestSubscriber<Integer>()
+        AsyncStreamHelper.toAsyncInputStream(inputStream).read(ByteBuffer.allocate(1024)).subscribe(subscriber)
+        subscriber.requestMore(1)
+
+        then:
+        1 *  inputStream.read(_) >> { throw new IOException('Read failed') }
+
+        then:
+        subscriber.assertErrored()
+
+        when:
+        subscriber = new TestSubscriber<Integer>()
+        AsyncStreamHelper.toAsyncInputStream(inputStream).close().subscribe(subscriber)
+        subscriber.requestMore(1)
+
+        then:
+        1 *  inputStream.close() >> { throw new IOException('Closed failed') }
+
+        then:
+        subscriber.assertErrored()
+    }
+
+    def 'should handle underlying OutputStream errors'() {
+        def outputStream = Mock(OutputStream)
+
+        when:
+        def subscriber = new TestSubscriber<Integer>()
+        AsyncStreamHelper.toAsyncOutputStream(outputStream).write(ByteBuffer.allocate(1024)).subscribe(subscriber)
+        subscriber.requestMore(1)
+
+        then:
+        1 *  outputStream.write(_) >> { throw new IOException('Read failed') }
+
+        then:
+        subscriber.assertErrored()
+
+        when:
+        subscriber = new TestSubscriber<Integer>()
+        AsyncStreamHelper.toAsyncOutputStream(outputStream).close().subscribe(subscriber)
+        subscriber.requestMore(1)
+
+        then:
+        1 *  outputStream.close() >> { throw new IOException('Closed failed') }
+
+        then:
+        subscriber.assertErrored()
     }
 
 }

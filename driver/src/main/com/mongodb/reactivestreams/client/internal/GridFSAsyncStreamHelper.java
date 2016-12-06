@@ -91,7 +91,6 @@ public final class GridFSAsyncStreamHelper {
             public void read(final ByteBuffer dst, final SingleResultCallback<Integer> callback) {
                 wrapped.read(dst).subscribe(new Subscriber<Integer>() {
                     private Integer result = null;
-                    private Throwable error = null;
 
                     @Override
                     public void onSubscribe(final Subscription s) {
@@ -105,12 +104,12 @@ public final class GridFSAsyncStreamHelper {
 
                     @Override
                     public void onError(final Throwable t) {
-                        error = t;
+                        callback.onResult(null, t);
                     }
 
                     @Override
                     public void onComplete() {
-                        callback.onResult(result, error);
+                        callback.onResult(result, null);
                     }
                 });
             }
@@ -118,7 +117,6 @@ public final class GridFSAsyncStreamHelper {
             @Override
             public void close(final SingleResultCallback<Void> callback) {
                 wrapped.close().subscribe(new Subscriber<Success>() {
-                    private Throwable error = null;
 
                     @Override
                     public void onSubscribe(final Subscription s) {
@@ -131,12 +129,12 @@ public final class GridFSAsyncStreamHelper {
 
                     @Override
                     public void onError(final Throwable t) {
-                        error = t;
+                        callback.onResult(null, t);
                     }
 
                     @Override
                     public void onComplete() {
-                        callback.onResult(null, error);
+                        callback.onResult(null, null);
                     }
                 });
             }
@@ -150,7 +148,6 @@ public final class GridFSAsyncStreamHelper {
             public void write(final ByteBuffer src, final SingleResultCallback<Integer> callback) {
                 wrapped.write(src).subscribe(new Subscriber<Integer>() {
                     private Integer result = null;
-                    private Throwable error = null;
 
                     @Override
                     public void onSubscribe(final Subscription s) {
@@ -164,12 +161,12 @@ public final class GridFSAsyncStreamHelper {
 
                     @Override
                     public void onError(final Throwable t) {
-                        error = t;
+                        callback.onResult(null, t);
                     }
 
                     @Override
                     public void onComplete() {
-                        callback.onResult(result, error);
+                        callback.onResult(result, null);
                     }
                 });
             }
@@ -177,7 +174,6 @@ public final class GridFSAsyncStreamHelper {
             @Override
             public void close(final SingleResultCallback<Void> callback) {
                 wrapped.close().subscribe(new Subscriber<Success>() {
-                    private Throwable error = null;
 
                     @Override
                     public void onSubscribe(final Subscription s) {
@@ -190,12 +186,12 @@ public final class GridFSAsyncStreamHelper {
 
                     @Override
                     public void onError(final Throwable t) {
-                        error = t;
+                        callback.onResult(null, t);
                     }
 
                     @Override
                     public void onComplete() {
-                        callback.onResult(null, error);
+                        callback.onResult(null, null);
                     }
                 });
             }

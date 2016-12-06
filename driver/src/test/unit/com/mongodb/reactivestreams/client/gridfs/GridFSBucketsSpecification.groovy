@@ -33,24 +33,22 @@ class GridFSBucketsSpecification extends Specification {
         wrapped == local
     }
 
-    def 'should call the internal getWrapped method'() {
+    def 'should have the default bucket name'() {
         when:
-        def database = Mock(MongoDatabaseImpl) {
-            1 * getWrapped() >> { Stub(WrappedMongoDatabase) }
-        }
+        def database = new MongoDatabaseImpl(Stub(WrappedMongoDatabase))
+        GridFSBuckets.create(database)
 
         then:
-        GridFSBuckets.create(database)
+        def gridFSBucket = GridFSBuckets.create(database)
+        gridFSBucket.getBucketName() == 'fs'
     }
 
     def 'should set the bucket name'() {
         when:
-        def database = Mock(MongoDatabaseImpl) {
-            1 * getWrapped() >> { Stub(WrappedMongoDatabase) }
-        }
+        def database = new MongoDatabaseImpl(Stub(WrappedMongoDatabase))
+        def gridFSBucket = GridFSBuckets.create(database, 'test')
 
         then:
-        def gridFSBucket = GridFSBuckets.create(database, 'test')
         gridFSBucket.getBucketName() == 'test'
     }
 

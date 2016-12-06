@@ -242,5 +242,4 @@ public interface MongoDatabase {
      * @mongodb.driver.manual reference/command/create Create Command
      */
     Publisher<Success> createView(String viewName, String viewOn, List<? extends Bson> pipeline, CreateViewOptions createViewOptions);
-
 }
