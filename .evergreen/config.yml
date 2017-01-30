@@ -193,7 +193,7 @@ functions:
   "upload test results":
     - command: attach.xunit_results
       params:
-        file: ./src/*/build/test-results/TEST-*.xml
+        file: ./src/*/build/test-results/*.xml
 
   "bootstrap mongo-orchestration":
     - command: shell.exec
@@ -205,25 +205,6 @@ functions:
     - command: expansions.update
       params:
         file: mo-expansion.yml
-
-  "run tests":
-    - command: shell.exec
-      type: test
-      params:
-        working_dir: "src"
-        script: |
-          ${PREPARE_SHELL}
-          AUTH=${AUTH} SSL=${SSL} MONGODB_URI="${MONGODB_URI}" TOPOLOGY=${TOPOLOGY} JDK="${JDK}" .evergreen/run-tests.sh
-
-  "publish snapshot":
-    - command: shell.exec
-      type: test
-      params:
-        silent: true
-        working_dir: "src"
-        script: |
-          # DO NOT ECHO WITH XTRACE (which PREPARE_SHELL does)
-          PROJECT_DIRECTORY=${PROJECT_DIRECTORY} NEXUS_USERNAME=${nexus_username} NEXUS_PASSWORD=${nexus_password} SIGNING_PASSWORD=${signing_password} SIGNING_KEY_ID=${signing_keyId} RING_FILE_GPG_BASE64=${ring_file_gpg_base64} .evergreen/publish.sh
 
   "cleanup":
     - command: shell.exec
@@ -285,6 +266,53 @@ functions:
         file="${PROJECT_DIRECTORY}/.evergreen/install-dependencies.sh"
         [ -f ${file} ] && sh ${file} || echo "${file} not available, skipping"
 
+  "run static checks":
+    - command: shell.exec
+      type: test
+      params:
+        working_dir: "src"
+        script: |
+          ${PREPARE_SHELL}
+          .evergreen/run-static-checks.sh
+
+  "run unit tests":
+    - command: shell.exec
+      type: test
+      params:
+        working_dir: "src"
+        script: |
+          ${PREPARE_SHELL}
+          SCALA_VERSION="${SCALA_VERSION}" .evergreen/run-unit-tests.sh
+
+  "run coverage":
+    - command: shell.exec
+      type: test
+      params:
+        working_dir: "src"
+        script: |
+          ${PREPARE_SHELL}
+          MONGODB_URI="${MONGODB_URI}" .evergreen/run-coverage.sh
+
+  "run tests":
+    - command: shell.exec
+      type: test
+      params:
+        working_dir: "src"
+        script: |
+          ${PREPARE_SHELL}
+          MONGODB_URI="${MONGODB_URI}" JDK="${JDK}" .evergreen/run-tests.sh
+
+  "publish snapshots":
+    - command: shell.exec
+      type: test
+      params:
+        silent: true
+        working_dir: "src"
+        script: |
+          # DO NOT ECHO WITH XTRACE (which PREPARE_SHELL does)
+          PROJECT_DIRECTORY=${PROJECT_DIRECTORY} NEXUS_USERNAME=${nexus_username} NEXUS_PASSWORD=${nexus_password} SIGNING_PASSWORD=${signing_password} SIGNING_KEY_ID=${signing_key_id} RING_FILE_GPG_BASE64=${ring_file_gpg_base64} .evergreen/publish-snapshots.sh
+
+
 pre:
   - func: "fetch source"
   - func: "prepare resources"
@@ -303,142 +331,78 @@ post:
 
 tasks:
 
-    # Compile / check build variant
-    - name: static-analysis
+    - name: "static-checks-task"
       commands:
-        - func: "exec script"
-          vars:
-            file: ".evergreen/compile.sh"
-        - func: "upload build"
+        - func: "run static checks"
 
-    - name: "test"
+    - name: "test-task"
       depends_on:
         - variant: "static-checks"
-          name: "static-analysis"
+          name: "static-checks-task"
       commands:
-        - func: "bootstrap mongo-orchestration"
         - func: "run tests"
 
-    - name: publish-snapshot
+    - name: "publish-snapshots-task"
       depends_on:
-        - variant: ".tests-variant"
-          name: "test"
+        - variant: ".tests"
+          name: "test-task"
       commands:
-        - func: "publish snapshot"
+        - func: "publish snapshots"
 
 axes:
-  - id: version
-    display_name: MongoDB Version
+  - id: "version"
+    display_name: "MongoDB Version"
     values:
       - id: "3.4"
         display_name: "3.4"
         variables:
            VERSION: "3.4"
-      - id: "3.2"
-        display_name: "3.2"
-        variables:
-           VERSION: "3.2"
-      - id: "3.0"
-        display_name: "3.0"
-        variables:
-           VERSION: "3.0"
-      - id: "2.6"
-        display_name: "2.6"
-        variables:
-           VERSION: "2.6"
-      - id: "2.4"
-        display_name: "2.4"
-        variables:
-           VERSION: "2.4"
-  - id: os
-    display_name: OS
+  - id: "os"
+    display_name: "OS"
     values:
       - id: "rhel62"
         display_name: "RHEL 6.2"
-        run_on: rhel62-test
+        run_on: "rhel62-test"
 
-  - id: topology
-    display_name: Topology
+  - id: "topology"
+    display_name: "Topology"
     values:
-      - id: "standalone"
-        display_name: Standalone
-        variables:
-           TOPOLOGY: "server"
       - id: "replicaset"
-        display_name: Replica Set
+        display_name: "Replica Set"
         variables:
            TOPOLOGY: "replica_set"
-      - id: "sharded-cluster"
-        display_name: Sharded Cluster
-        variables:
-           TOPOLOGY: "sharded_cluster"
-  - id: auth
-    display_name: Authentication
-    values:
-      - id: "auth"
-        display_name: Auth
-        variables:
-           AUTH: "auth"
-      - id: "noauth"
-        display_name: NoAuth
-        variables:
-           AUTH: "noauth"
-  - id: ssl
-    display_name: SSL
-    values:
-      - id: "ssl"
-        display_name: SSL
-        variables:
-           SSL: "ssl"
-      - id: "nossl"
-        display_name: NoSSL
-        variables:
-           SSL: "nossl"
-  - id: jdk
-    display_name: JDK
+
+  - id: "jdk"
+    display_name: "JDK"
     values:
       - id: "jdk8"
-        display_name: JDK8
+        display_name: "JDK8"
         variables:
            JDK: "jdk8"
       - id: "jdk7"
-        display_name: JDK7
+        display_name: "JDK7"
         variables:
            JDK: "jdk7"
-      - id: "jdk6"
-        display_name: JDK6
-        variables:
-           JDK: "jdk6"
 
 buildvariants:
 
-# Test packaging and other release related routines
-- name: static-checks
+- name: "static-checks"
   display_name: "Static Checks"
   run_on:
-    - rhel62-test
+    - "rhel62-test"
   tasks:
-    - name: "static-analysis"
+    - name: "static-checks-task"
 
-- matrix_name: "tests-jdk6"
-  matrix_spec: { auth: "*", ssl: "*", jdk: "jdk6", version: "*", topology: "*", os: "*" }
-  exclude_spec: { version: "2.4", ssl: "ssl", jdk: "*", auth: "*", topology: "*", os: "*" }
-  display_name: "${version} ${topology} ${auth} ${ssl} ${jdk} ${os} "
-  tags: ["tests-variant"]
+- matrix_name: "tests"
+  matrix_spec: { jdk: "*", version: "*", topology: "*", os: "*" }
+  display_name: "${jdk} ${version} ${topology} ${os}"
+  tags: ["tests"]
   tasks:
-     - name: "test"
+     - name: "test-task"
 
-- matrix_name: "tests-jdk-other"
-  matrix_spec: { auth: "*", ssl: "*", jdk: "*", version: "3.4", topology: "standalone", os: "rhel62" }
-  exclude_spec: { jdk: "jdk6", auth: "*", ssl: "*", version: "*", topology: "*", os: "*" }
-  display_name: "${version} ${topology} ${auth} ${ssl} ${jdk} ${os} "
-  tags: ["tests-variant"]
-  tasks:
-     - name: "test"
-
-- name: publish-snapshot
-  display_name: "Publish Snapshot"
+- name: "publish-snapshots"
+  display_name: "Publish Snapshots"
   run_on:
-    - rhel62-test
+    - "rhel62-test"
   tasks:
-    - name: "publish-snapshot"
+    - name: "publish-snapshots-task"
