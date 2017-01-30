@@ -293,7 +293,6 @@ functions:
           ${PREPARE_SHELL}
           .evergreen/run-tck-tests.sh
 
-
   "publish snapshots":
     - command: shell.exec
       type: test
@@ -335,7 +334,7 @@ tasks:
         - func: "bootstrap mongo-orchestration"
         - func: "run tests"
 
-    - name: "tck-test-task"
+    - name: "tck-tests-task"
       depends_on:
         - variant: ".tests"
           name: "test-task"
