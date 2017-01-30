@@ -348,8 +348,8 @@ tasks:
 
     - name: "publish-snapshots-task"
       depends_on:
-        - variant: "tck tests"
-          name: "tck-test-task"
+        - variant: "tck-tests"
+          name: "tck-tests-task"
       commands:
         - func: "publish snapshots"
 
@@ -404,12 +404,12 @@ buildvariants:
   tasks:
      - name: "test-task"
 
-- name: "tck tests"
+- name: "tck-tests"
   display_name: "TCK tests"
   run_on:
     - "rhel62-test"
   tasks:
-    - name: "tck-test-task"
+    - name: "tck-tests-task"
 
 - name: "publish-snapshots"
   display_name: "Publish Snapshots"
