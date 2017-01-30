@@ -275,24 +275,6 @@ functions:
           ${PREPARE_SHELL}
           .evergreen/run-static-checks.sh
 
-  "run unit tests":
-    - command: shell.exec
-      type: test
-      params:
-        working_dir: "src"
-        script: |
-          ${PREPARE_SHELL}
-          SCALA_VERSION="${SCALA_VERSION}" .evergreen/run-unit-tests.sh
-
-  "run coverage":
-    - command: shell.exec
-      type: test
-      params:
-        working_dir: "src"
-        script: |
-          ${PREPARE_SHELL}
-          MONGODB_URI="${MONGODB_URI}" .evergreen/run-coverage.sh
-
   "run tests":
     - command: shell.exec
       type: test
@@ -301,6 +283,16 @@ functions:
         script: |
           ${PREPARE_SHELL}
           MONGODB_URI="${MONGODB_URI}" JDK="${JDK}" .evergreen/run-tests.sh
+
+  "run tck tests":
+    - command: shell.exec
+      type: test
+      params:
+        working_dir: "src"
+        script: |
+          ${PREPARE_SHELL}
+          .evergreen/run-tck-tests.sh
+
 
   "publish snapshots":
     - command: shell.exec
@@ -340,12 +332,24 @@ tasks:
         - variant: "static-checks"
           name: "static-checks-task"
       commands:
+        - func: "bootstrap mongo-orchestration"
         - func: "run tests"
 
-    - name: "publish-snapshots-task"
+    - name: "tck-test-task"
       depends_on:
         - variant: ".tests"
           name: "test-task"
+      commands:
+        - func: "bootstrap mongo-orchestration"
+          vars:
+            VERSION: "3.4"
+            TOPOLOGY: "server"
+        - func: "run tck tests"
+
+    - name: "publish-snapshots-task"
+      depends_on:
+        - variant: "test-tck"
+          name: "tck-test-task"
       commands:
         - func: "publish snapshots"
 
@@ -399,6 +403,13 @@ buildvariants:
   tags: ["tests"]
   tasks:
      - name: "test-task"
+
+- name: "tck test"
+  display_name: "TCK tests"
+  run_on:
+    - "rhel62-test"
+  tasks:
+    - name: "tck-test-task"
 
 - name: "publish-snapshots"
   display_name: "Publish Snapshots"
