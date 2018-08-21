@@ -1,3 +1,5 @@
+import static org.gradle.util.CollectionUtils.single
+
 /*
  * Copyright 2014-2015 MongoDB, Inc.
  *
@@ -24,12 +26,14 @@ buildscript {
         maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
         jcenter()
         mavenCentral()
+        maven { url "https://plugins.gradle.org/m2/" }
         mavenLocal()
     }
     dependencies {
         classpath 'me.trnl:clirr-gradle-plugin:0.4'
         classpath 'com.netflix.nebula:gradle-extra-configurations-plugin:1.12.+'
         classpath 'com.bmuschko:gradle-nexus-plugin:2.2'
+        classpath 'gradle.plugin.de.fuerstenau:BuildConfigPlugin:1.1.8'
     }
 }
 
@@ -98,17 +102,7 @@ configure(subprojects.findAll { it.name != 'util' }) {
         exclude "**/com/mongodb/**/internal/**"
 
         dependsOn project(':util').compileJava //We need taglets to be compiled
-        options.author = true
-        options.version = true
-        options.links 'http://docs.oracle.com/javase/8/docs/api/'
-        options.links 'http://mongodb.github.io/mongo-java-driver/3.8/javadoc/'
-        options.tagletPath project(':util').sourceSets.main.output.classesDir
-        options.taglets 'DochubTaglet'
-        options.taglets 'ManualTaglet'
-        options.taglets 'ServerReleaseTaglet'
-        options.encoding = 'UTF-8'
-        options.charSet 'UTF-8'
-        options.docEncoding 'UTF-8'
+        options { options -> setJavaDocOptions(options) }
     }
 }
 
@@ -217,12 +211,44 @@ configure(subprojects.findAll { it.name != 'util' && it.name != 'mongo-java-driv
 }
 
 task docs(type: Javadoc) {
-    source subprojects.grep({ it.name != 'util' }).collect {project -> project.sourceSets.main.allJava }
-    options = subprojects.first().javadoc.options
-    dependsOn = subprojects.first().javadoc.dependsOn
-    excludes =  subprojects.first().javadoc.excludes
-    classpath = files(subprojects.collect {project -> project.sourceSets.main.compileClasspath})
     destinationDir = new File(projectDir, 'build/docs')
+    options { options -> setJavaDocOptions(options) }
+    subprojects.grep({ it.name == 'driver' }).each { proj ->
+        proj.tasks.withType(Javadoc).each { javadocTask ->
+            source += javadocTask.source
+            classpath += javadocTask.classpath
+            excludes += javadocTask.excludes
+            includes += javadocTask.includes
+            dependsOn +=javadocTask.dependsOn
+        }
+    }
+}
+
+def getGitVersion() {
+    def outputAsString
+    new ByteArrayOutputStream().withStream { os ->
+        def result = exec {
+            executable 'git'
+            args 'describe', '--tags', '--always', '--dirty'
+            standardOutput = os
+        }
+        outputAsString = os.toString().substring(1).trim()
+    }
+    return outputAsString
+}
+
+def setJavaDocOptions(MinimalJavadocOptions options) {
+    options.author = true
+    options.version = true
+    options.links 'https://docs.oracle.com/javase/9/docs/api/'
+    options.links 'http://mongodb.github.io/mongo-java-driver/3.8/javadoc/'
+    options.tagletPath single(project(':util').sourceSets.main.output.classesDirs)
+    options.taglets 'ManualTaglet'
+    options.taglets 'DochubTaglet'
+    options.taglets 'ServerReleaseTaglet'
+    options.encoding = 'UTF-8'
+    options.charSet 'UTF-8'
+    options.docEncoding 'UTF-8'
 }
 
 
@@ -230,7 +256,7 @@ task docs(type: Javadoc) {
 // Root project configuration           //
 //////////////////////////////////////////
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.3'
+    gradleVersion = '4.9'
 }
 
 gradle.buildFinished { BuildResult result ->
