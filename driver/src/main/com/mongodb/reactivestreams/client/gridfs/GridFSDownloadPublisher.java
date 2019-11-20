@@ -19,16 +19,16 @@ package com.mongodb.reactivestreams.client.gridfs;
 import com.mongodb.client.gridfs.model.GridFSFile;
 import org.reactivestreams.Publisher;
 
+import java.nio.ByteBuffer;
+
 /**
- * A GridFS InputStream for downloading data from GridFS
+ * A GridFS Publisher for downloading data from GridFS
  *
- * <p>Provides the {@code GridFSFile} for the file to being downloaded as well as the {@code read} methods of a {@link AsyncInputStream}</p>
+ * <p>Provides the {@code GridFSFile} for the file to being downloaded as well as a way to control the batchsize.</p>
  *
- * @since 1.3
- * @deprecated use {@link GridFSDownloadPublisher } instead
+ * @since 1.13
  */
-@Deprecated
-public interface GridFSDownloadStream extends AsyncInputStream {
+public interface GridFSDownloadPublisher extends Publisher<ByteBuffer> {
 
     /**
      * Gets the corresponding {@link GridFSFile} for the file being downloaded
@@ -38,14 +38,16 @@ public interface GridFSDownloadStream extends AsyncInputStream {
     Publisher<GridFSFile> getGridFSFile();
 
     /**
-     * Sets the number of chunks to return per batch.
+     * The preferred number of bytes per ByteBuffer returned by the publisher.
      *
-     * <p>Can be used to control the memory consumption of this InputStream. The smaller the batchSize the lower the memory consumption
+     * <p>Allows for larger than chunk size ByteBuffers. Chunk size is the smallest allowable ByteBuffer size.</p>
+     * <p>Can be used to control the memory consumption of this Publisher. The smaller the bufferSizeBytes the lower the memory consumption
      * and higher latency.</p>
      *
-     * @param batchSize the batch size
+     * <p>Note: Must be set before the publisher is subscribed to.</p>
+     *
+     * @param bufferSizeBytes the preferred buffer size in bytes to use per ByteBuffer in the publisher, defaults to chunk size.
      * @return this
-     * @mongodb.driver.manual reference/method/cursor.batchSize/#cursor.batchSize Batch Size
      */
-    GridFSDownloadStream batchSize(int batchSize);
+    GridFSDownloadPublisher bufferSizeBytes(int bufferSizeBytes);
 }
