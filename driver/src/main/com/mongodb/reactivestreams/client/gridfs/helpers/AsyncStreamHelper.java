@@ -36,8 +36,10 @@ import java.nio.ByteBuffer;
  * </ul>
  *
  * @since 1.3
+ * @deprecated there is no replacement for this class
  */
 @SuppressWarnings("deprecation")
+@Deprecated
 public final class AsyncStreamHelper {
 
     /**

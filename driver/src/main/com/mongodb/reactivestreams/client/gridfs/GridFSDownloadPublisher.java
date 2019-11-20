@@ -33,20 +33,23 @@ public interface GridFSDownloadPublisher extends Publisher<ByteBuffer> {
     /**
      * Gets the corresponding {@link GridFSFile} for the file being downloaded
      *
-     * @return a publisher with a single element, the corresponding GridFSFile for the file being downloaded
+     * @return a Publisher with a single element, the corresponding GridFSFile for the file being downloaded
      */
     Publisher<GridFSFile> getGridFSFile();
 
     /**
-     * The preferred number of bytes per ByteBuffer returned by the publisher.
+     * The preferred number of bytes per {@code ByteBuffer} returned by the {@code Publisher}.
      *
-     * <p>Allows for larger than chunk size ByteBuffers. Chunk size is the smallest allowable ByteBuffer size.</p>
-     * <p>Can be used to control the memory consumption of this Publisher. The smaller the bufferSizeBytes the lower the memory consumption
-     * and higher latency.</p>
+     * <p>Allows for larger than chunk size ByteBuffers. The actual chunk size of the data stored in MongoDB is the smallest allowable 
+     * {@code ByteBuffer} size.</p>
      *
-     * <p>Note: Must be set before the publisher is subscribed to.</p>
+     * <p>Can be used to control the memory consumption of this {@code Publisher}. The smaller the bufferSizeBytes the lower the memory
+     * consumption and higher latency.</p>
      *
-     * @param bufferSizeBytes the preferred buffer size in bytes to use per ByteBuffer in the publisher, defaults to chunk size.
+     * <p>Note: Must be set before the Publisher is subscribed to.</p>
+     *
+     * @param bufferSizeBytes the preferred buffer size in bytes to use per {@code ByteBuffer} in the {@code Publisher}, defaults to chunk
+     *                        size.
      * @return this
      */
     GridFSDownloadPublisher bufferSizeBytes(int bufferSizeBytes);

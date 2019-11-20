@@ -285,7 +285,7 @@ public interface GridFSBucket {
      *
      * @param filename the filename for the stream
      * @param source   the Stream providing the file data
-     * @return a publisher with a single element, the ObjectId of the uploaded file.
+     * @return a Publisher with a single element, the ObjectId of the uploaded file.
      * @deprecated prefer {@link GridFSBucket#uploadFromPublisher(String, Publisher)} instead
      */
     @Deprecated
@@ -301,7 +301,7 @@ public interface GridFSBucket {
      * @param filename the filename for the stream
      * @param source   the Stream providing the file data
      * @param options  the GridFSUploadOptions
-     * @return a publisher with a single element, the ObjectId of the uploaded file.
+     * @return a Publisher with a single element, the ObjectId of the uploaded file.
      * @deprecated prefer {@link GridFSBucket#uploadFromPublisher(String, Publisher, GridFSUploadOptions)} instead
      */
     @Deprecated
@@ -317,7 +317,7 @@ public interface GridFSBucket {
      * @param id the custom id value of the file
      * @param filename the filename for the stream
      * @param source   the Stream providing the file data
-     * @return a publisher with a single element, representing when the successful upload of the source.
+     * @return a Publisher with a single element, representing when the successful upload of the source.
      * @deprecated prefer {@link GridFSBucket#uploadFromPublisher(BsonValue, String, Publisher)} instead
      */
     @Deprecated
@@ -334,7 +334,7 @@ public interface GridFSBucket {
      * @param filename the filename for the stream
      * @param source   the Stream providing the file data
      * @param options  the GridFSUploadOptions
-     * @return a publisher with a single element, representing when the successful upload of the source.
+     * @return a Publisher with a single element, representing when the successful upload of the source.
      * @deprecated prefer {@link GridFSBucket#uploadFromPublisher(BsonValue, String, Publisher, GridFSUploadOptions)} instead
      */
     @Deprecated
@@ -350,7 +350,7 @@ public interface GridFSBucket {
      * @param clientSession the client session with which to associate this operation
      * @param filename the filename for the stream
      * @param source   the Stream providing the file data
-     * @return a publisher with a single element, the ObjectId of the uploaded file.
+     * @return a Publisher with a single element, the ObjectId of the uploaded file.
      * @mongodb.server.release 3.6
      * @since 1.7
      * @deprecated prefer {@link GridFSBucket#uploadFromPublisher(ClientSession, String, Publisher)} instead
@@ -369,7 +369,7 @@ public interface GridFSBucket {
      * @param filename the filename for the stream
      * @param source   the Stream providing the file data
      * @param options  the GridFSUploadOptions
-     * @return a publisher with a single element, the ObjectId of the uploaded file.
+     * @return a Publisher with a single element, the ObjectId of the uploaded file.
      * @mongodb.server.release 3.6
      * @since 1.7
      * @deprecated prefer {@link GridFSBucket#uploadFromPublisher(ClientSession, String, Publisher, GridFSUploadOptions)} instead
@@ -389,7 +389,7 @@ public interface GridFSBucket {
      * @param id the custom id value of the file
      * @param filename the filename for the stream
      * @param source   the Stream providing the file data
-     * @return a publisher with a single element, representing when the successful upload of the source.
+     * @return a Publisher with a single element, representing when the successful upload of the source.
      * @mongodb.server.release 3.6
      * @since 1.7
      * @deprecated prefer {@link GridFSBucket#uploadFromPublisher(ClientSession, BsonValue, String, Publisher)} instead
@@ -409,7 +409,7 @@ public interface GridFSBucket {
      * @param filename the filename for the stream
      * @param source   the Stream providing the file data
      * @param options  the GridFSUploadOptions
-     * @return a publisher with a single element, representing when the successful upload of the source.
+     * @return a Publisher with a single element, representing when the successful upload of the source.
      * @mongodb.server.release 3.6
      * @since 1.7
      * @deprecated prefer {@link GridFSBucket#uploadFromPublisher(ClientSession, BsonValue, String, Publisher, GridFSUploadOptions)} instead
@@ -419,7 +419,7 @@ public interface GridFSBucket {
                                         GridFSUploadOptions options);
 
     /**
-     * Opens a AsyncInputStream from which the application can read the contents of the stored file specified by {@code id}.
+     * Opens a {@code AsyncInputStream} from which the application can read the contents of the stored file specified by {@code id}.
      *
      * @param id the ObjectId of the file to be put into a stream.
      * @return the stream
@@ -429,7 +429,7 @@ public interface GridFSBucket {
     GridFSDownloadStream openDownloadStream(ObjectId id);
 
     /**
-     * Opens a AsyncInputStream from which the application can read the contents of the stored file specified by {@code id}.
+     * Opens a {@code AsyncInputStream} from which the application can read the contents of the stored file specified by {@code id}.
      *
      * @param id the custom id value of the file, to be put into a stream.
      * @return the stream
@@ -439,7 +439,7 @@ public interface GridFSBucket {
     GridFSDownloadStream openDownloadStream(BsonValue id);
 
     /**
-     * Opens a AsyncInputStream from which the application can read the contents of the latest version of the stored file specified by the
+     * Opens a {@code AsyncInputStream} from which the application can read the contents of the latest version of the stored file specified by the
      * {@code filename}.
      *
      * @param filename the name of the file to be downloaded
@@ -450,7 +450,7 @@ public interface GridFSBucket {
     GridFSDownloadStream openDownloadStream(String filename);
 
     /**
-     * Opens a AsyncInputStream from which the application can read the contents of the stored file specified by {@code filename} and the
+     * Opens a {@code AsyncInputStream} from which the application can read the contents of the stored file specified by {@code filename} and the
      * revision in {@code options}.
      *
      * @param filename the name of the file to be downloaded
@@ -462,7 +462,7 @@ public interface GridFSBucket {
     GridFSDownloadStream openDownloadStream(String filename, GridFSDownloadOptions options);
 
     /**
-     * Opens a AsyncInputStream from which the application can read the contents of the stored file specified by {@code id}.
+     * Opens a {@code AsyncInputStream} from which the application can read the contents of the stored file specified by {@code id}.
      *
      * @param clientSession the client session with which to associate this operation
      * @param id the ObjectId of the file to be put into a stream.
@@ -475,7 +475,7 @@ public interface GridFSBucket {
     GridFSDownloadStream openDownloadStream(ClientSession clientSession, ObjectId id);
 
     /**
-     * Opens a AsyncInputStream from which the application can read the contents of the stored file specified by {@code id}.
+     * Opens a {@code AsyncInputStream} from which the application can read the contents of the stored file specified by {@code id}.
      *
      * @param clientSession the client session with which to associate this operation
      * @param id the custom id value of the file, to be put into a stream.
@@ -488,8 +488,8 @@ public interface GridFSBucket {
     GridFSDownloadStream openDownloadStream(ClientSession clientSession, BsonValue id);
 
     /**
-     * Opens a AsyncInputStream from which the application can read the contents of the latest version of the stored file specified by the
-     * {@code filename}.
+     * Opens a {@code AsyncInputStream} from which the application can read the contents of the latest version of the stored file
+     * specified by the {@code filename}.
      *
      * @param clientSession the client session with which to associate this operation
      * @param filename the name of the file to be downloaded
@@ -502,8 +502,8 @@ public interface GridFSBucket {
     GridFSDownloadStream openDownloadStream(ClientSession clientSession, String filename);
 
     /**
-     * Opens a AsyncInputStream from which the application can read the contents of the stored file specified by {@code filename} and the
-     * revision in {@code options}.
+     * Opens a {@code AsyncInputStream} from which the application can read the contents of the stored file specified by
+     * {@code filename} and the revision in {@code options}.
      *
      * @param clientSession the client session with which to associate this operation
      * @param filename the name of the file to be downloaded
@@ -518,11 +518,11 @@ public interface GridFSBucket {
 
     /**
      * Downloads the contents of the stored file specified by {@code id} and writes the contents to the {@code destination}
-     * AsyncOutputStream.
+     * {@code AsyncOutputStream}.
      *
      * @param id          the ObjectId of the file to be written to the destination stream
      * @param destination the destination stream
-     * @return a publisher with a single element, representing the amount of data written
+     * @return a Publisher with a single element, representing the amount of data written
      * @deprecated prefer {@link GridFSBucket#downloadToPublisher(ObjectId)} instead
      */
     @Deprecated
@@ -530,11 +530,11 @@ public interface GridFSBucket {
 
     /**
      * Downloads the contents of the stored file specified by {@code id} and writes the contents to the {@code destination}
-     * AsyncOutputStream.
+     * {@code AsyncOutputStream}.
      *
      * @param id          the custom id of the file, to be written to the destination stream
      * @param destination the destination stream
-     * @return a publisher with a single element, representing the amount of data written
+     * @return a Publisher with a single element, representing the amount of data written
      * @deprecated prefer {@link GridFSBucket#downloadToPublisher(BsonValue)} instead
      */
     @Deprecated
@@ -546,7 +546,7 @@ public interface GridFSBucket {
      *
      * @param filename    the name of the file to be downloaded
      * @param destination the destination stream
-     * @return a publisher with a single element, representing the amount of data written
+     * @return a Publisher with a single element, representing the amount of data written
      * @deprecated prefer {@link GridFSBucket#downloadToPublisher(String)} instead
      */
     @Deprecated
@@ -559,7 +559,7 @@ public interface GridFSBucket {
      * @param filename    the name of the file to be downloaded
      * @param destination the destination stream
      * @param options     the download options
-     * @return a publisher with a single element, representing the amount of data written
+     * @return a Publisher with a single element, representing the amount of data written
      * @deprecated prefer {@link GridFSBucket#downloadToPublisher(String, GridFSDownloadOptions)} instead
      */
     @Deprecated
@@ -567,12 +567,12 @@ public interface GridFSBucket {
 
     /**
      * Downloads the contents of the stored file specified by {@code id} and writes the contents to the {@code destination}
-     * AsyncOutputStream.
+     * {@code AsyncOutputStream}.
      *
      * @param clientSession the client session with which to associate this operation
      * @param id          the ObjectId of the file to be written to the destination stream
      * @param destination the destination stream
-     * @return a publisher with a single element, representing the amount of data written
+     * @return a Publisher with a single element, representing the amount of data written
      * @mongodb.server.release 3.6
      * @since 1.7
      * @deprecated prefer {@link GridFSBucket#downloadToPublisher(ClientSession, ObjectId)} instead
@@ -582,12 +582,12 @@ public interface GridFSBucket {
 
     /**
      * Downloads the contents of the stored file specified by {@code id} and writes the contents to the {@code destination}
-     * AsyncOutputStream.
+     * {@code AsyncOutputStream}.
      *
      * @param clientSession the client session with which to associate this operation
      * @param id          the custom id of the file, to be written to the destination stream
      * @param destination the destination stream
-     * @return a publisher with a single element, representing the amount of data written
+     * @return a Publisher with a single element, representing the amount of data written
      * @mongodb.server.release 3.6
      * @since 1.7
      * @deprecated prefer {@link GridFSBucket#downloadToPublisher(ClientSession, BsonValue)} instead
@@ -602,7 +602,7 @@ public interface GridFSBucket {
      * @param clientSession the client session with which to associate this operation
      * @param filename    the name of the file to be downloaded
      * @param destination the destination stream
-     * @return a publisher with a single element, representing the amount of data written
+     * @return a Publisher with a single element, representing the amount of data written
      * @mongodb.server.release 3.6
      * @since 1.7
      * @deprecated prefer {@link GridFSBucket#downloadToPublisher(ClientSession, String)} instead
@@ -618,7 +618,7 @@ public interface GridFSBucket {
      * @param filename    the name of the file to be downloaded
      * @param destination the destination stream
      * @param options     the download options
-     * @return a publisher with a single element, representing the amount of data written
+     * @return a Publisher with a single element, representing the amount of data written
      * @mongodb.server.release 3.6
      * @since 1.7
      * @deprecated prefer {@link GridFSBucket#downloadToPublisher(ClientSession, String, GridFSDownloadOptions)} instead
@@ -628,36 +628,36 @@ public interface GridFSBucket {
                                      GridFSDownloadOptions options);
 
     /**
-     * Uploads the contents of the given {@code AsyncInputStream} to a GridFS bucket.
+     * Uploads the contents of the given {@code Publisher} to a GridFS bucket.
      * <p>
      * Reads the contents of the user file from the {@code source} and uploads it as chunks in the chunks collection. After all the
      * chunks have been uploaded, it creates a files collection document for {@code filename} in the files collection.
      * </p>
      *
      * @param filename the filename for the stream
-     * @param source   the Stream providing the file data
-     * @return a publisher with a single element, the ObjectId of the uploaded file.
+     * @param source   the Publisher providing the file data
+     * @return a Publisher with a single element, the ObjectId of the uploaded file.
      * @since 1.13
      */
     GridFSUploadPublisher<ObjectId> uploadFromPublisher(String filename, Publisher<ByteBuffer> source);
 
     /**
-     * Uploads the contents of the given {@code AsyncInputStream} to a GridFS bucket.
+     * Uploads the contents of the given {@code Publisher} to a GridFS bucket.
      * <p>
      * Reads the contents of the user file from the {@code source} and uploads it as chunks in the chunks collection. After all the
      * chunks have been uploaded, it creates a files collection document for {@code filename} in the files collection.
      * </p>
      *
      * @param filename the filename for the stream
-     * @param source   the Stream providing the file data
+     * @param source   the Publisher providing the file data
      * @param options  the GridFSUploadOptions
-     * @return a publisher with a single element, the ObjectId of the uploaded file.
+     * @return a Publisher with a single element, the ObjectId of the uploaded file.
      * @since 1.13
      */
     GridFSUploadPublisher<ObjectId> uploadFromPublisher(String filename, Publisher<ByteBuffer> source, GridFSUploadOptions options);
 
     /**
-     * Uploads the contents of the given {@code AsyncInputStream} to a GridFS bucket.
+     * Uploads the contents of the given {@code Publisher} to a GridFS bucket.
      * <p>
      * Reads the contents of the user file from the {@code source} and uploads it as chunks in the chunks collection. After all the
      * chunks have been uploaded, it creates a files collection document for {@code filename} in the files collection.
@@ -665,14 +665,14 @@ public interface GridFSBucket {
      *
      * @param id the custom id value of the file
      * @param filename the filename for the stream
-     * @param source   the Stream providing the file data
-     * @return a publisher with a single element, representing when the successful upload of the source.
+     * @param source   the Publisher providing the file data
+     * @return a Publisher with a single element, representing when the successful upload of the source.
      * @since 1.13
      */
     GridFSUploadPublisher<Success> uploadFromPublisher(BsonValue id, String filename, Publisher<ByteBuffer> source);
 
     /**
-     * Uploads the contents of the given {@code AsyncInputStream} to a GridFS bucket.
+     * Uploads the contents of the given {@code Publisher} to a GridFS bucket.
      * <p>
      * Reads the contents of the user file from the {@code source} and uploads it as chunks in the chunks collection. After all the
      * chunks have been uploaded, it creates a files collection document for {@code filename} in the files collection.
@@ -680,16 +680,16 @@ public interface GridFSBucket {
      *
      * @param id       the custom id value of the file
      * @param filename the filename for the stream
-     * @param source   the Stream providing the file data
+     * @param source   the Publisher providing the file data
      * @param options  the GridFSUploadOptions
-     * @return a publisher with a single element, representing when the successful upload of the source.
+     * @return a Publisher with a single element, representing when the successful upload of the source.
      * @since 1.13
      */
     GridFSUploadPublisher<Success> uploadFromPublisher(BsonValue id, String filename, Publisher<ByteBuffer> source,
                                                        GridFSUploadOptions options);
 
     /**
-     * Uploads the contents of the given {@code AsyncInputStream} to a GridFS bucket.
+     * Uploads the contents of the given {@code Publisher} to a GridFS bucket.
      * <p>
      * Reads the contents of the user file from the {@code source} and uploads it as chunks in the chunks collection. After all the
      * chunks have been uploaded, it creates a files collection document for {@code filename} in the files collection.
@@ -697,15 +697,15 @@ public interface GridFSBucket {
      *
      * @param clientSession the client session with which to associate this operation
      * @param filename the filename for the stream
-     * @param source   the Stream providing the file data
-     * @return a publisher with a single element, the ObjectId of the uploaded file.
+     * @param source   the Publisher providing the file data
+     * @return a Publisher with a single element, the ObjectId of the uploaded file.
      * @mongodb.server.release 3.6
      * @since 1.13
      */
     GridFSUploadPublisher<ObjectId> uploadFromPublisher(ClientSession clientSession, String filename, Publisher<ByteBuffer> source);
 
     /**
-     * Uploads the contents of the given {@code AsyncInputStream} to a GridFS bucket.
+     * Uploads the contents of the given {@code Publisher} to a GridFS bucket.
      * <p>
      * Reads the contents of the user file from the {@code source} and uploads it as chunks in the chunks collection. After all the
      * chunks have been uploaded, it creates a files collection document for {@code filename} in the files collection.
@@ -713,9 +713,9 @@ public interface GridFSBucket {
      *
      * @param clientSession the client session with which to associate this operation
      * @param filename the filename for the stream
-     * @param source   the Stream providing the file data
+     * @param source   the Publisher providing the file data
      * @param options  the GridFSUploadOptions
-     * @return a publisher with a single element, the ObjectId of the uploaded file.
+     * @return a Publisher with a single element, the ObjectId of the uploaded file.
      * @mongodb.server.release 3.6
      * @since 1.13
      */
@@ -723,7 +723,7 @@ public interface GridFSBucket {
                                                         GridFSUploadOptions options);
 
     /**
-     * Uploads the contents of the given {@code AsyncInputStream} to a GridFS bucket.
+     * Uploads the contents of the given {@code Publisher} to a GridFS bucket.
      * <p>
      * Reads the contents of the user file from the {@code source} and uploads it as chunks in the chunks collection. After all the
      * chunks have been uploaded, it creates a files collection document for {@code filename} in the files collection.
@@ -732,8 +732,8 @@ public interface GridFSBucket {
      * @param clientSession the client session with which to associate this operation
      * @param id the custom id value of the file
      * @param filename the filename for the stream
-     * @param source   the Stream providing the file data
-     * @return a publisher with a single element, representing when the successful upload of the source.
+     * @param source   the Publisher providing the file data
+     * @return a Publisher with a single element, representing when the successful upload of the source.
      * @mongodb.server.release 3.6
      * @since 1.13
      */
@@ -741,7 +741,7 @@ public interface GridFSBucket {
                                                        Publisher<ByteBuffer> source);
 
     /**
-     * Uploads the contents of the given {@code AsyncInputStream} to a GridFS bucket.
+     * Uploads the contents of the given {@code Publisher} to a GridFS bucket.
      * <p>
      * Reads the contents of the user file from the {@code source} and uploads it as chunks in the chunks collection. After all the
      * chunks have been uploaded, it creates a files collection document for {@code filename} in the files collection.
@@ -750,9 +750,9 @@ public interface GridFSBucket {
      * @param clientSession the client session with which to associate this operation
      * @param id       the custom id value of the file
      * @param filename the filename for the stream
-     * @param source   the Stream providing the file data
+     * @param source   the Publisher providing the file data
      * @param options  the GridFSUploadOptions
-     * @return a publisher with a single element, representing when the successful upload of the source.
+     * @return a Publisher with a single element, representing when the successful upload of the source.
      * @mongodb.server.release 3.6
      * @since 1.13
      */
@@ -760,90 +760,84 @@ public interface GridFSBucket {
                                                        Publisher<ByteBuffer> source, GridFSUploadOptions options);
 
     /**
-     * Downloads the contents of the stored file specified by {@code id} and writes the contents to the {@code destination}
-     * AsyncOutputStream.
+     * Downloads the contents of the stored file specified by {@code id} into the {@code Publisher}.
      *
      * @param id          the ObjectId of the file to be written to the destination stream
-     * @return a publisher with a single element, representing the amount of data written
+     * @return a Publisher with a single element, representing the amount of data written
      * @since 1.13
      */
     GridFSDownloadPublisher downloadToPublisher(ObjectId id);
 
     /**
-     * Downloads the contents of the stored file specified by {@code id} and writes the contents to the {@code destination}
-     * AsyncOutputStream.
+     * Downloads the contents of the stored file specified by {@code id} into the {@code Publisher}.
      *
      * @param id          the custom id of the file, to be written to the destination stream
-     * @return a publisher with a single element, representing the amount of data written
+     * @return a Publisher with a single element, representing the amount of data written
      * @since 1.13
      */
     GridFSDownloadPublisher downloadToPublisher(BsonValue id);
 
     /**
-     * Downloads the contents of the latest version of the stored file specified by {@code filename} and writes the contents to
-     * the {@code destination} Stream.
+     * Downloads the contents of the stored file specified by {@code filename} into the {@code Publisher}.
      *
      * @param filename    the name of the file to be downloaded
-     * @return a publisher with a single element, representing the amount of data written
+     * @return a Publisher with a single element, representing the amount of data written
      * @since 1.13
      */
     GridFSDownloadPublisher downloadToPublisher(String filename);
 
     /**
-     * Downloads the contents of the stored file specified by {@code filename} and by the revision in {@code options} and writes the
-     * contents to the {@code destination} Stream.
+     * Downloads the contents of the stored file specified by {@code filename} and by the revision in {@code options} into the
+     * {@code Publisher}.
      *
      * @param filename    the name of the file to be downloaded
      * @param options     the download options
-     * @return a publisher with a single element, representing the amount of data written
+     * @return a Publisher with a single element, representing the amount of data written
      * @since 1.13
      */
     GridFSDownloadPublisher downloadToPublisher(String filename, GridFSDownloadOptions options);
 
     /**
-     * Downloads the contents of the stored file specified by {@code id} and writes the contents to the {@code destination}
-     * AsyncOutputStream.
+     * Downloads the contents of the stored file specified by {@code id} into the {@code Publisher}.
      *
      * @param clientSession the client session with which to associate this operation
      * @param id          the ObjectId of the file to be written to the destination stream
-     * @return a publisher with a single element, representing the amount of data written
+     * @return a Publisher with a single element, representing the amount of data written
      * @mongodb.server.release 3.6
      * @since 1.13
      */
     GridFSDownloadPublisher downloadToPublisher(ClientSession clientSession, ObjectId id);
 
     /**
-     * Downloads the contents of the stored file specified by {@code id} and writes the contents to the {@code destination}
-     * AsyncOutputStream.
+     * Downloads the contents of the stored file specified by {@code id} into the {@code Publisher}.
      *
      * @param clientSession the client session with which to associate this operation
      * @param id          the custom id of the file, to be written to the destination stream
-     * @return a publisher with a single element, representing the amount of data written
+     * @return a Publisher with a single element, representing the amount of data written
      * @mongodb.server.release 3.6
      * @since 1.13
      */
     GridFSDownloadPublisher downloadToPublisher(ClientSession clientSession, BsonValue id);
 
     /**
-     * Downloads the contents of the latest version of the stored file specified by {@code filename} and writes the contents to
-     * the {@code destination} Stream.
+     * Downloads the contents of the latest version of the stored file specified by {@code filename} into the {@code Publisher}.
      *
      * @param clientSession the client session with which to associate this operation
      * @param filename    the name of the file to be downloaded
-     * @return a publisher with a single element, representing the amount of data written
+     * @return a Publisher with a single element, representing the amount of data written
      * @mongodb.server.release 3.6
      * @since 1.13
      */
     GridFSDownloadPublisher downloadToPublisher(ClientSession clientSession, String filename);
 
     /**
-     * Downloads the contents of the stored file specified by {@code filename} and by the revision in {@code options} and writes the
-     * contents to the {@code destination} Stream.
+     * Downloads the contents of the stored file specified by {@code filename} and by the revision in {@code options} into the
+     * {@code Publisher}.
      *
      * @param clientSession the client session with which to associate this operation
      * @param filename    the name of the file to be downloaded
      * @param options     the download options
-     * @return a publisher with a single element, representing the amount of data written
+     * @return a Publisher with a single element, representing the amount of data written
      * @mongodb.server.release 3.6
      * @since 1.13
      */
@@ -907,7 +901,7 @@ public interface GridFSBucket {
      * Given a {@code id}, delete this stored file's files collection document and associated chunks from a GridFS bucket.
      *
      * @param id       the ObjectId of the file to be deleted
-     * @return a publisher with a single element, representing that the file has been deleted
+     * @return a Publisher with a single element, representing that the file has been deleted
      */
     Publisher<Success> delete(ObjectId id);
 
@@ -915,7 +909,7 @@ public interface GridFSBucket {
      * Given a {@code id}, delete this stored file's files collection document and associated chunks from a GridFS bucket.
      *
      * @param id       the ObjectId of the file to be deleted
-     * @return a publisher with a single element, representing that the file has been deleted
+     * @return a Publisher with a single element, representing that the file has been deleted
      */
     Publisher<Success> delete(BsonValue id);
 
@@ -924,7 +918,7 @@ public interface GridFSBucket {
      *
      * @param clientSession the client session with which to associate this operation
      * @param id       the ObjectId of the file to be deleted
-     * @return a publisher with a single element, representing that the file has been deleted
+     * @return a Publisher with a single element, representing that the file has been deleted
      * @mongodb.server.release 3.6
      * @since 1.7
      */
@@ -935,7 +929,7 @@ public interface GridFSBucket {
      *
      * @param clientSession the client session with which to associate this operation
      * @param id       the ObjectId of the file to be deleted
-     * @return a publisher with a single element, representing that the file has been deleted
+     * @return a Publisher with a single element, representing that the file has been deleted
      * @mongodb.server.release 3.6
      * @since 1.7
      */
@@ -946,7 +940,7 @@ public interface GridFSBucket {
      *
      * @param id          the id of the file in the files collection to rename
      * @param newFilename the new filename for the file
-     * @return a publisher with a single element, representing that the file has been renamed
+     * @return a Publisher with a single element, representing that the file has been renamed
      */
     Publisher<Success> rename(ObjectId id, String newFilename);
 
@@ -955,7 +949,7 @@ public interface GridFSBucket {
      *
      * @param id          the id of the file in the files collection to rename
      * @param newFilename the new filename for the file
-     * @return a publisher with a single element, representing that the file has been renamed
+     * @return a Publisher with a single element, representing that the file has been renamed
      */
     Publisher<Success> rename(BsonValue id, String newFilename);
 
@@ -965,7 +959,7 @@ public interface GridFSBucket {
      * @param clientSession the client session with which to associate this operation
      * @param id          the id of the file in the files collection to rename
      * @param newFilename the new filename for the file
-     * @return a publisher with a single element, representing that the file has been renamed
+     * @return a Publisher with a single element, representing that the file has been renamed
      * @mongodb.server.release 3.6
      * @since 1.7
      */
@@ -977,7 +971,7 @@ public interface GridFSBucket {
      * @param clientSession the client session with which to associate this operation
      * @param id          the id of the file in the files collection to rename
      * @param newFilename the new filename for the file
-     * @return a publisher with a single element, representing that the file has been renamed
+     * @return a Publisher with a single element, representing that the file has been renamed
      * @mongodb.server.release 3.6
      * @since 1.7
      */
@@ -986,7 +980,7 @@ public interface GridFSBucket {
     /**
      * Drops the data associated with this bucket from the database.
      *
-     * @return a publisher with a single element, representing that the collections have been dropped
+     * @return a Publisher with a single element, representing that the collections have been dropped
      */
     Publisher<Success> drop();
 
@@ -994,7 +988,7 @@ public interface GridFSBucket {
      * Drops the data associated with this bucket from the database.
      *
      * @param clientSession the client session with which to associate this operation
-     * @return a publisher with a single element, representing that the collections have been dropped
+     * @return a Publisher with a single element, representing that the collections have been dropped
      * @mongodb.server.release 3.6
      * @since 1.7
      */

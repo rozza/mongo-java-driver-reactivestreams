@@ -22,9 +22,9 @@ import org.bson.types.ObjectId;
 import org.reactivestreams.Publisher;
 
 /**
- * A GridFS publisher for uploading data into GridFS
+ * A GridFS {@code Publisher} for uploading data into GridFS
  *
- * <p>Provides the {@code id} for the file to be uploaded as well as the {@code write} methods of a {@link AsyncOutputStream}</p>
+ * <p>Provides the {@code id} for the file to be uploaded.</p>
  *
  * @param <T> the result type of the publisher
  * @since 1.13
