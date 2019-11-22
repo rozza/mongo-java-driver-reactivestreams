@@ -169,11 +169,11 @@ public class GridFSDownloadPublisherImpl implements GridFSDownloadPublisher {
                         } else {
                             int byteBufferSize = Math.max(chunkSize, bufferSizeBytes);
                             byteBufferSize =  Math.min(Long.valueOf(remaining).intValue(), byteBufferSize);
-                            int batchSize = Math.max(byteBufferSize / chunkSize, 1);
                             ByteBuffer byteBuffer = ByteBuffer.allocate(byteBufferSize);
-                            if (batchSize != currentBatchSize) {
-                                currentBatchSize = batchSize;
-                                gridFSDownloadStream.batchSize(batchSize);
+
+                            if (currentBatchSize == 0) {
+                                currentBatchSize = Math.max(byteBufferSize / chunkSize, 1);
+                                gridFSDownloadStream.batchSize(currentBatchSize);
                             }
                             gridFSDownloadStream.read(byteBuffer).subscribe(new GridFSDownloadStreamSubscriber(byteBuffer));
                         }
