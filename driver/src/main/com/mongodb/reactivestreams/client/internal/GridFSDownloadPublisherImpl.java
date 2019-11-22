@@ -55,12 +55,10 @@ public class GridFSDownloadPublisherImpl implements GridFSDownloadPublisher {
 
         /* protected by `this` */
         private GridFSFile gridFSFile;
-        private boolean requestedData;
         private long sizeRead = 0;
         private long requested = 0;
         private int currentBatchSize = 0;
-        private boolean isCompleted = false;
-        private boolean isTerminated = false;
+        private Action currentAction = Action.WAITING;
         /* protected by `this` */
 
         GridFSDownloadSubscription(final Subscriber<? super ByteBuffer> outerSubscriber) {
@@ -89,9 +87,9 @@ public class GridFSDownloadPublisherImpl implements GridFSDownloadPublisher {
             @Override
             public void onComplete() {
                 synchronized (GridFSDownloadSubscription.this) {
-                    requestedData = false;
+                    currentAction = Action.WAITING;
                 }
-                requestMoreOrComplete();
+                tryProcess();
             }
         };
 
@@ -125,15 +123,21 @@ public class GridFSDownloadPublisherImpl implements GridFSDownloadPublisher {
                 if (byteBuffer.remaining() > 0) {
                     gridFSDownloadStream.read(byteBuffer).subscribe(new GridFSDownloadStreamSubscriber(byteBuffer));
                 } else {
+                    boolean hasTerminated;
                     synchronized (GridFSDownloadSubscription.this) {
-                        requestedData = false;
-                        if (sizeRead == gridFSFile.getLength()) {
-                            isCompleted = true;
+                        hasTerminated = currentAction == Action.TERMINATE || currentAction == Action.FINISHED;
+                        if (!hasTerminated) {
+                            currentAction = Action.WAITING;
+                            if (sizeRead == gridFSFile.getLength()) {
+                                currentAction = Action.COMPLETE;
+                            }
                         }
                     }
-                    byteBuffer.flip();
-                    outerSubscriber.onNext(byteBuffer);
-                    requestMoreOrComplete();
+                    if (!hasTerminated) {
+                        byteBuffer.flip();
+                        outerSubscriber.onNext(byteBuffer);
+                        tryProcess();
+                    }
                 }
             }
         }
@@ -143,43 +147,74 @@ public class GridFSDownloadPublisherImpl implements GridFSDownloadPublisher {
             synchronized (this) {
                 requested += n;
             }
-            requestMoreOrComplete();
+            tryProcess();
         }
 
         @Override
         public void cancel() {
             terminate();
         }
-
-        private void requestMoreOrComplete() {
+        
+        private void tryProcess() {
+            NextStep nextStep;
             synchronized (this) {
-                if (requested > 0 && !requestedData && !isTerminated && !isCompleted) {
-                    requestedData = true;
-                    if (gridFSFile == null) {
-                        getGridFSFile().subscribe(gridFSFileSubscriber);
-                    } else {
-                        requested--;
-                        int chunkSize = gridFSFile.getChunkSize();
-                        long remaining = gridFSFile.getLength() - sizeRead;
-
-                        if (remaining == 0) {
-                            isCompleted = true;
-                            requestedData = false;
-                            requestMoreOrComplete();
+                switch (currentAction) {
+                    case WAITING:
+                        if (requested == 0) {
+                            nextStep = NextStep.DO_NOTHING;
+                        } else if (gridFSFile == null) {
+                            nextStep = NextStep.GET_FILE;
+                            currentAction = Action.IN_PROGRESS;
+                        } else if (sizeRead == gridFSFile.getLength()) {
+                            nextStep = NextStep.COMPLETE;
+                            currentAction = Action.FINISHED;
                         } else {
-                            int byteBufferSize = Math.max(chunkSize, bufferSizeBytes);
-                            byteBufferSize =  Math.min(Long.valueOf(remaining).intValue(), byteBufferSize);
-                            ByteBuffer byteBuffer = ByteBuffer.allocate(byteBufferSize);
-
-                            if (currentBatchSize == 0) {
-                                currentBatchSize = Math.max(byteBufferSize / chunkSize, 1);
-                                gridFSDownloadStream.batchSize(currentBatchSize);
-                            }
-                            gridFSDownloadStream.read(byteBuffer).subscribe(new GridFSDownloadStreamSubscriber(byteBuffer));
+                            requested--;
+                            nextStep = NextStep.READ;
+                            currentAction = Action.IN_PROGRESS;
                         }
+                        break;
+                    case COMPLETE:
+                        nextStep = NextStep.COMPLETE;
+                        currentAction = Action.FINISHED;
+                        break;
+                    case TERMINATE:
+                        nextStep = NextStep.TERMINATE;
+                        currentAction = Action.FINISHED;
+                        break;
+                    case IN_PROGRESS:
+                    case FINISHED:
+                    default:
+                        nextStep = NextStep.DO_NOTHING;
+                        break;
+                }
+            }
+
+            switch (nextStep) {
+                case GET_FILE:
+                    getGridFSFile().subscribe(gridFSFileSubscriber);
+                    break;
+                case READ:
+                    int chunkSize;
+                    long remaining;
+                    synchronized (this) {
+                        chunkSize = gridFSFile.getChunkSize();
+                        remaining = gridFSFile.getLength() - sizeRead;
                     }
-                } else if (isCompleted && !requestedData && !isTerminated) {
-                    isTerminated = true;
+
+                    int byteBufferSize = Math.max(chunkSize, bufferSizeBytes);
+                    byteBufferSize =  Math.min(Long.valueOf(remaining).intValue(), byteBufferSize);
+                    ByteBuffer byteBuffer = ByteBuffer.allocate(byteBufferSize);
+
+                    if (currentBatchSize == 0) {
+                        currentBatchSize = Math.max(byteBufferSize / chunkSize, 1);
+                        gridFSDownloadStream.batchSize(currentBatchSize);
+                    }
+                    gridFSDownloadStream.read(byteBuffer).subscribe(new GridFSDownloadStreamSubscriber(byteBuffer));
+                    break;
+                case COMPLETE:
+                case TERMINATE:
+                    final boolean propagateToOuter = nextStep == NextStep.COMPLETE;
                     gridFSDownloadStream.close().subscribe(new Subscriber<Success>() {
                         @Override
                         public void onSubscribe(final Subscription s) {
@@ -192,22 +227,46 @@ public class GridFSDownloadPublisherImpl implements GridFSDownloadPublisher {
 
                         @Override
                         public void onError(final Throwable t) {
-                            outerSubscriber.onError(t);
+                            if (propagateToOuter) {
+                                outerSubscriber.onError(t);
+                            }
                         }
 
                         @Override
                         public void onComplete() {
-                            outerSubscriber.onComplete();
+                            if (propagateToOuter) {
+                                outerSubscriber.onComplete();
+                            }
                         }
                     });
-                }
+                    break;
+                case DO_NOTHING:
+                default:
+                    break;
             }
         }
 
         private void terminate() {
             synchronized (this) {
-                isTerminated = true;
+                currentAction = Action.TERMINATE;
             }
+            tryProcess();
         }
+    }
+
+    enum Action {
+        WAITING,
+        IN_PROGRESS,
+        TERMINATE,
+        COMPLETE,
+        FINISHED
+    }
+        
+    enum NextStep {
+        GET_FILE,
+        READ,
+        COMPLETE,
+        TERMINATE,
+        DO_NOTHING
     }
 }

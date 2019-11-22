@@ -60,11 +60,8 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
         private final Subscriber<? super Success> outerSubscriber;
 
         /* protected by `this` */
-        private boolean requestedData;
         private long requested = 0;
-        private boolean isCompleted = false;
-        private boolean isTerminated = false;
-        private boolean subscribed = false;
+        private Action currentAction = Action.WAITING;
         private Subscription sourceSubscription;
         /* protected by `this` */
 
@@ -76,10 +73,10 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
             @Override
             public void onSubscribe(final Subscription s) {
                 synchronized (GridFSUploadSubscription.this) {
-                    subscribed = true;
                     sourceSubscription = s;
+                    currentAction = Action.WAITING;
                 }
-                s.request(1);
+                tryProcess();
             }
 
             @Override
@@ -89,15 +86,17 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
 
             @Override
             public void onError(final Throwable t) {
+                synchronized (GridFSUploadSubscription.this) {
+                    currentAction = Action.FINISHED;
+                }
                 outerSubscriber.onError(t);
             }
 
             @Override
             public void onComplete() {
                 synchronized (GridFSUploadSubscription.this) {
-                    isCompleted = true;
+                    currentAction = Action.COMPLETE;
                 }
-                requestMoreOrComplete();
             }
 
 
@@ -129,9 +128,11 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
                         sourceSubscriber.onNext(byteBuffer);
                     } else {
                         synchronized (GridFSUploadSubscription.this) {
-                            requestedData = false;
+                            if (currentAction != Action.COMPLETE && currentAction != Action.TERMINATE && currentAction != Action.FINISHED) {
+                                currentAction = Action.WAITING;
+                            }
                         }
-                        requestMoreOrComplete();
+                        tryProcess();
                     }
                 }
             }
@@ -142,47 +143,56 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
             synchronized (this) {
                 requested += n;
             }
-            requestMoreOrComplete();
+            tryProcess();
         }
 
         @Override
         public void cancel() {
             terminate();
-            gridFSUploadStream.abort().subscribe(new Subscriber<Success>() {
-                @Override
-                public void onSubscribe(final Subscription s) {
-                    s.request(1);
-                }
-
-                @Override
-                public void onNext(final Success success) {
-                    // Do nothing
-                }
-
-                @Override
-                public void onError(final Throwable t) {
-                    outerSubscriber.onError(t);
-                }
-
-                @Override
-                public void onComplete() {
-                    // Do nothing
-                }
-            });
         }
 
-        private void requestMoreOrComplete() {
+        private void tryProcess() {
+            NextStep nextStep;
             synchronized (this) {
-                if (requested > 0 && !requestedData && !isTerminated && !isCompleted) {
-                    requestedData = true;
-                    requested--;
-                    if (!subscribed) {
-                        source.subscribe(sourceSubscriber);
-                    } else {
+                switch (currentAction) {
+                    case WAITING:
+                        if (requested == 0) {
+                            nextStep = NextStep.DO_NOTHING;
+                        } else if (sourceSubscription == null) {
+                            nextStep = NextStep.SUBSCRIBE;
+                            currentAction = Action.IN_PROGRESS;
+                        } else {
+                            requested--;
+                            nextStep = NextStep.WRITE;
+                            currentAction = Action.IN_PROGRESS;
+                        }
+                        break;
+                    case COMPLETE:
+                        nextStep = NextStep.COMPLETE;
+                        currentAction = Action.FINISHED;
+                        break;
+                    case TERMINATE:
+                        nextStep = NextStep.TERMINATE;
+                        currentAction = Action.FINISHED;
+                        break;
+                    case IN_PROGRESS:
+                    case FINISHED:
+                    default:
+                        nextStep = NextStep.DO_NOTHING;
+                        break;
+                }
+            }
+
+            switch (nextStep) {
+                case SUBSCRIBE:
+                    source.subscribe(sourceSubscriber);
+                    break;
+                case WRITE:
+                    synchronized (this) {
                         sourceSubscription.request(1);
                     }
-                } else if (isCompleted && !requestedData && !isTerminated) {
-                    isTerminated = true;
+                    break;
+                case COMPLETE:
                     gridFSUploadStream.close().subscribe(new Subscriber<Success>() {
                         @Override
                         public void onSubscribe(final Subscription s) {
@@ -191,7 +201,7 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
 
                         @Override
                         public void onNext(final Success success) {
-                            outerSubscriber.onNext(Success.SUCCESS);
+                            outerSubscriber.onNext(success);
                         }
 
                         @Override
@@ -204,14 +214,38 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
                             outerSubscriber.onComplete();
                         }
                     });
-                }
+                    break;
+                case TERMINATE:
+                    gridFSUploadStream.abort().subscribe(new Subscriber<Success>() {
+                        @Override
+                        public void onSubscribe(final Subscription s) {
+                            s.request(1);
+                        }
+
+                        @Override
+                        public void onNext(final Success success) {
+                        }
+
+                        @Override
+                        public void onError(final Throwable t) {
+                        }
+
+                        @Override
+                        public void onComplete() {
+                        }
+                    });
+                    break;
+                case DO_NOTHING:
+                default:
+                    break;
             }
         }
 
         private void terminate() {
             synchronized (this) {
-                isTerminated = true;
+                currentAction = Action.TERMINATE;
             }
+            tryProcess();
         }
     }
 
@@ -259,5 +293,21 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
                 });
             }
         };
+    }
+
+    enum Action {
+        WAITING,
+        IN_PROGRESS,
+        TERMINATE,
+        COMPLETE,
+        FINISHED
+    }
+
+    enum NextStep {
+        SUBSCRIBE,
+        WRITE,
+        COMPLETE,
+        TERMINATE,
+        DO_NOTHING
     }
 }
