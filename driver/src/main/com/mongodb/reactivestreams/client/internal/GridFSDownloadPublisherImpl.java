@@ -52,9 +52,8 @@ public class GridFSDownloadPublisherImpl implements GridFSDownloadPublisher {
 
     class GridFSDownloadSubscription implements Subscription {
         private final Subscriber<? super ByteBuffer> outerSubscriber;
-        private final Object lock = new Object();
 
-        /* protected by `lock` */
+        /* protected by `this` */
         private GridFSFile gridFSFile;
         private boolean requestedData;
         private long sizeRead = 0;
@@ -62,9 +61,9 @@ public class GridFSDownloadPublisherImpl implements GridFSDownloadPublisher {
         private int currentBatchSize = 0;
         private boolean isCompleted = false;
         private boolean isTerminated = false;
-        /* protected by `lock` */
+        /* protected by `this` */
 
-        public GridFSDownloadSubscription(final Subscriber<? super ByteBuffer> outerSubscriber) {
+        GridFSDownloadSubscription(final Subscriber<? super ByteBuffer> outerSubscriber) {
             this.outerSubscriber = outerSubscriber;
         }
 
@@ -76,7 +75,7 @@ public class GridFSDownloadPublisherImpl implements GridFSDownloadPublisher {
 
             @Override
             public void onNext(final GridFSFile result) {
-                synchronized (lock) {
+                synchronized (GridFSDownloadSubscription.this) {
                     gridFSFile = result;
                 }
             }
@@ -89,7 +88,7 @@ public class GridFSDownloadPublisherImpl implements GridFSDownloadPublisher {
 
             @Override
             public void onComplete() {
-                synchronized (lock) {
+                synchronized (GridFSDownloadSubscription.this) {
                     requestedData = false;
                 }
                 requestMoreOrComplete();
@@ -110,7 +109,7 @@ public class GridFSDownloadPublisherImpl implements GridFSDownloadPublisher {
 
             @Override
             public void onNext(final Integer integer) {
-                synchronized (lock) {
+                synchronized (GridFSDownloadSubscription.this) {
                     sizeRead += integer;
                 }
             }
@@ -126,7 +125,7 @@ public class GridFSDownloadPublisherImpl implements GridFSDownloadPublisher {
                 if (byteBuffer.remaining() > 0) {
                     gridFSDownloadStream.read(byteBuffer).subscribe(new GridFSDownloadStreamSubscriber(byteBuffer));
                 } else {
-                    synchronized (lock) {
+                    synchronized (GridFSDownloadSubscription.this) {
                         requestedData = false;
                         if (sizeRead == gridFSFile.getLength()) {
                             isCompleted = true;
@@ -141,7 +140,7 @@ public class GridFSDownloadPublisherImpl implements GridFSDownloadPublisher {
 
         @Override
         public void request(final long n) {
-            synchronized (lock) {
+            synchronized (this) {
                 requested += n;
             }
             requestMoreOrComplete();
@@ -153,7 +152,7 @@ public class GridFSDownloadPublisherImpl implements GridFSDownloadPublisher {
         }
 
         private void requestMoreOrComplete() {
-            synchronized (lock) {
+            synchronized (this) {
                 if (requested > 0 && !requestedData && !isTerminated && !isCompleted) {
                     requestedData = true;
                     if (gridFSFile == null) {
@@ -206,7 +205,7 @@ public class GridFSDownloadPublisherImpl implements GridFSDownloadPublisher {
         }
 
         private void terminate() {
-            synchronized (lock) {
+            synchronized (this) {
                 isTerminated = true;
             }
         }

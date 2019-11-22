@@ -58,16 +58,15 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
 
     class GridFSUploadSubscription implements Subscription {
         private final Subscriber<? super Success> outerSubscriber;
-        private final Object lock = new Object();
 
-        /* protected by `lock` */
+        /* protected by `this` */
         private boolean requestedData;
         private long requested = 0;
         private boolean isCompleted = false;
         private boolean isTerminated = false;
         private boolean subscribed = false;
         private Subscription sourceSubscription;
-        /* protected by `lock` */
+        /* protected by `this` */
 
         GridFSUploadSubscription(final Subscriber<? super Success> outerSubscriber) {
             this.outerSubscriber = outerSubscriber;
@@ -76,7 +75,7 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
         private final Subscriber<ByteBuffer> sourceSubscriber = new Subscriber<ByteBuffer>() {
             @Override
             public void onSubscribe(final Subscription s) {
-                synchronized (lock) {
+                synchronized (GridFSUploadSubscription.this) {
                     subscribed = true;
                     sourceSubscription = s;
                 }
@@ -95,7 +94,7 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
 
             @Override
             public void onComplete() {
-                synchronized (lock) {
+                synchronized (GridFSUploadSubscription.this) {
                     isCompleted = true;
                 }
                 requestMoreOrComplete();
@@ -129,7 +128,7 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
                     if (byteBuffer.remaining() > 0) {
                         sourceSubscriber.onNext(byteBuffer);
                     } else {
-                        synchronized (lock) {
+                        synchronized (GridFSUploadSubscription.this) {
                             requestedData = false;
                         }
                         requestMoreOrComplete();
@@ -140,7 +139,7 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
 
         @Override
         public void request(final long n) {
-            synchronized (lock) {
+            synchronized (this) {
                 requested += n;
             }
             requestMoreOrComplete();
@@ -173,7 +172,7 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
         }
 
         private void requestMoreOrComplete() {
-            synchronized (lock) {
+            synchronized (this) {
                 if (requested > 0 && !requestedData && !isTerminated && !isCompleted) {
                     requestedData = true;
                     requested--;
@@ -210,7 +209,7 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
         }
 
         private void terminate() {
-            synchronized (lock) {
+            synchronized (this) {
                 isTerminated = true;
             }
         }
