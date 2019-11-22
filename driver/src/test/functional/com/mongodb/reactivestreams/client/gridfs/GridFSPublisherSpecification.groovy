@@ -189,7 +189,7 @@ class GridFSPublisherSpecification extends FunctionalSpecification {
         thrown(MongoGridFSException)
     }
 
-    def 'should round trip with a byteBuffer size of 1024'() {
+    def 'should round trip with a byteBuffer size of 4096'() {
         given:
         def contentSize = 1024 * 1024
         def contentBytes = new byte[contentSize]
@@ -213,10 +213,10 @@ class GridFSPublisherSpecification extends FunctionalSpecification {
         fileInfo.getMetadata() == null
 
         when:
-        def data = runAndCollect(gridFSBucket.downloadToPublisher(fileId).&bufferSizeBytes, 1024)
+        def data = runAndCollect(gridFSBucket.downloadToPublisher(fileId).&bufferSizeBytes, 4096)
 
         then:
-        data.size() == 1024
+        data.size() == 256
         concatByteBuffers(data) == contentBytes
     }
 
