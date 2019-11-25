@@ -19,7 +19,6 @@ package com.mongodb.reactivestreams.client;
 import com.mongodb.Block;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoCommandException;
-import com.mongodb.MongoException;
 import com.mongodb.MongoNamespace;
 import com.mongodb.MongoTimeoutException;
 import com.mongodb.connection.ClusterType;

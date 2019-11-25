@@ -439,8 +439,8 @@ public interface GridFSBucket {
     GridFSDownloadStream openDownloadStream(BsonValue id);
 
     /**
-     * Opens a {@code AsyncInputStream} from which the application can read the contents of the latest version of the stored file specified by the
-     * {@code filename}.
+     * Opens a {@code AsyncInputStream} from which the application can read the contents of the latest version of the stored file specified
+     * by the {@code filename}.
      *
      * @param filename the name of the file to be downloaded
      * @return the stream
@@ -450,8 +450,8 @@ public interface GridFSBucket {
     GridFSDownloadStream openDownloadStream(String filename);
 
     /**
-     * Opens a {@code AsyncInputStream} from which the application can read the contents of the stored file specified by {@code filename} and the
-     * revision in {@code options}.
+     * Opens a {@code AsyncInputStream} from which the application can read the contents of the stored file specified by {@code filename}
+     * and the revision in {@code options}.
      *
      * @param filename the name of the file to be downloaded
      * @param options  the download options
