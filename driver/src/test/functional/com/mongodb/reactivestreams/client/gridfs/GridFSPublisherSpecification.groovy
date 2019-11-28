@@ -27,6 +27,8 @@ import org.bson.BsonString
 import org.bson.Document
 import org.bson.UuidRepresentation
 import org.bson.codecs.UuidCodec
+import org.reactivestreams.Publisher
+import org.reactivestreams.Subscriber
 import spock.lang.Unroll
 
 import java.nio.ByteBuffer
@@ -108,12 +110,13 @@ class GridFSPublisherSpecification extends FunctionalSpecification {
         given:
         def contentSize = 1024 * 500
         def chunkSize = 10
-        def contentBytes = new byte[contentSize];
+        def contentBytes = new byte[contentSize / 2];
         new SecureRandom().nextBytes(contentBytes);
         def options = new GridFSUploadOptions().chunkSizeBytes(chunkSize)
 
         when:
-        def fileId = run(gridFSBucket.&uploadFromPublisher, 'myFile', createPublisher(ByteBuffer.wrap(contentBytes)), options)
+        def fileId = run(gridFSBucket.&uploadFromPublisher, 'myFile', createPublisher(ByteBuffer.wrap(contentBytes),
+                ByteBuffer.wrap(contentBytes)), options)
 
         then:
         run(filesCollection.&countDocuments) == 1
@@ -123,7 +126,7 @@ class GridFSPublisherSpecification extends FunctionalSpecification {
         def data = runAndCollect(gridFSBucket.&downloadToPublisher, fileId)
 
         then:
-        concatByteBuffers(data) == contentBytes
+        concatByteBuffers(data) == concatByteBuffers([ByteBuffer.wrap(contentBytes), ByteBuffer.wrap(contentBytes)])
     }
 
     def 'should round trip with data larger than the internal bufferSize'() {
@@ -218,6 +221,23 @@ class GridFSPublisherSpecification extends FunctionalSpecification {
         then:
         data.size() == 256
         concatByteBuffers(data) == contentBytes
+    }
+
+    def 'should handle uploading publisher erroring'() {
+        given:
+        def errorMessage = 'Failure Propagated'
+        def source = new Publisher<ByteBuffer>() {
+            @Override
+            void subscribe(final Subscriber<? super ByteBuffer> s) {
+                s.onError(new IllegalArgumentException(errorMessage))
+            }
+        }
+        when:
+        run(gridFSBucket.&uploadFromPublisher, 'myFile', source)
+
+        then:
+        IllegalArgumentException ex = thrown()
+        ex.getMessage() == errorMessage
     }
 
     def 'should use custom uploadOptions when uploading' () {
