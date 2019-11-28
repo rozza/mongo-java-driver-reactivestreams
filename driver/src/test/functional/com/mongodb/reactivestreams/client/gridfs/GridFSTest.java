@@ -59,8 +59,6 @@ import java.util.List;
 import static com.mongodb.reactivestreams.client.Fixture.ObservableSubscriber;
 import static com.mongodb.reactivestreams.client.Fixture.getDefaultDatabaseName;
 import static com.mongodb.reactivestreams.client.Fixture.initializeCollection;
-import static com.mongodb.reactivestreams.client.gridfs.helpers.AsyncStreamHelper.toAsyncInputStream;
-import static com.mongodb.reactivestreams.client.gridfs.helpers.AsyncStreamHelper.toAsyncOutputStream;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -264,7 +262,8 @@ public class GridFSTest extends DatabaseTestCase {
                 }
             } else {
                 ObservableSubscriber<Long> subscriber = new ObservableSubscriber<Long>();
-                gridFSBucket.downloadToStream(arguments.getObjectId("id").getValue(), toAsyncOutputStream(outputStream))
+                gridFSBucket.downloadToStream(arguments.getObjectId("id").getValue(),
+                        com.mongodb.reactivestreams.client.gridfs.helpers.AsyncStreamHelper.toAsyncOutputStream(outputStream))
                         .subscribe(subscriber);
                 subscriber.get(30, SECONDS);
             }
@@ -303,7 +302,8 @@ public class GridFSTest extends DatabaseTestCase {
                 }
             } else {
                 ObservableSubscriber<Long> subscriber = new ObservableSubscriber<Long>();
-                gridFSBucket.downloadToStream(arguments.getString("filename").getValue(), toAsyncOutputStream(outputStream),
+                gridFSBucket.downloadToStream(arguments.getString("filename").getValue(),
+                        com.mongodb.reactivestreams.client.gridfs.helpers.AsyncStreamHelper.toAsyncOutputStream(outputStream),
                         options).subscribe(subscriber);
                 subscriber.get(30, SECONDS);
             }
@@ -351,7 +351,9 @@ public class GridFSTest extends DatabaseTestCase {
                         })), options).subscribe(subscriber);
             } else {
                 InputStream inputStream = new ByteArrayInputStream(arguments.getBinary("source").getData());
-                gridFSUploadBucket.uploadFromStream(filename, toAsyncInputStream(inputStream), options).subscribe(subscriber);
+                gridFSUploadBucket.uploadFromStream(filename,
+                        com.mongodb.reactivestreams.client.gridfs.helpers.AsyncStreamHelper.toAsyncInputStream(inputStream),
+                        options).subscribe(subscriber);
                 objectId = subscriber.get(30, SECONDS).get(0);
             }
             objectId = subscriber.get(30, SECONDS).get(0);
