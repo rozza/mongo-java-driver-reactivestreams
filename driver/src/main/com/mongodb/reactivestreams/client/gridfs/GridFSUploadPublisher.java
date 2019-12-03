@@ -16,7 +16,6 @@
 
 package com.mongodb.reactivestreams.client.gridfs;
 
-import com.mongodb.reactivestreams.client.Success;
 import org.bson.BsonValue;
 import org.bson.types.ObjectId;
 import org.reactivestreams.Publisher;
@@ -24,12 +23,12 @@ import org.reactivestreams.Publisher;
 /**
  * A GridFS {@code Publisher} for uploading data into GridFS
  *
- * <p>Provides the {@code id} for the file to be uploaded.</p>
+ * <p>Provides the {@code id} for the file to be uploaded. Cancelling the subscription to this publisher will cause any uploaded data
+ * to be cleaned up and removed.</p>
  *
  * @param <T> the result type of the publisher
  * @since 1.13
  */
-
 public interface GridFSUploadPublisher<T> extends Publisher<T> {
 
     /**
@@ -47,12 +46,5 @@ public interface GridFSUploadPublisher<T> extends Publisher<T> {
      * @return the id for this file
      */
     BsonValue getId();
-
-    /**
-     * Aborts the upload and deletes any data.
-     *
-     * @return a publisher with a single element, signifying the abort and cleanup has finished
-     */
-    Publisher<Success> abort();
 
 }

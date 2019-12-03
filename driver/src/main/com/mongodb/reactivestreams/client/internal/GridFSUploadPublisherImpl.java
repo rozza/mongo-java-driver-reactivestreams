@@ -47,11 +47,6 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
     }
 
     @Override
-    public Publisher<Success> abort() {
-        return gridFSUploadStream.abort();
-    }
-
-    @Override
     public void subscribe(final Subscriber<? super Success> s) {
         s.onSubscribe(new GridFSUploadSubscription(s));
     }
@@ -261,11 +256,6 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
             @Override
             public BsonValue getId() {
                 return wrapped.getId();
-            }
-
-            @Override
-            public Publisher<Success> abort() {
-                return wrapped.abort();
             }
 
             @Override

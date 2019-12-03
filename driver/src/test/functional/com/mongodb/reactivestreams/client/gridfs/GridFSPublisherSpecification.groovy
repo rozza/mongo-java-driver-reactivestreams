@@ -405,35 +405,6 @@ class GridFSPublisherSpecification extends FunctionalSpecification {
         tryMultipleTimes({ run(chunksCollection.&countDocuments) }, 0)
     }
 
-    def 'should abort and cleanup'() {
-        when:
-        def contentBytes = multiChunkString as byte[]
-
-        then:
-        run(filesCollection.&countDocuments) == 0
-
-        when:
-        def subscriber = new ObservableSubscriber()
-        def publisher = gridFSBucket.uploadFromPublisher('myFile', createPublisher(ByteBuffer.wrap(contentBytes),
-                ByteBuffer.wrap(contentBytes)))
-        publisher.subscribe(subscriber)
-        subscriber.getSubscription().request(1)
-
-        then:
-        !subscriber.isCompleted()
-
-        then:
-        run(filesCollection.&countDocuments) == 0
-        tryMultipleTimes({ run(chunksCollection.&countDocuments) }, 5)
-
-        then:
-        run(publisher.&abort)
-
-        then:
-        run(filesCollection.&countDocuments) == 0
-        run(chunksCollection.&countDocuments) == 0
-    }
-
     def tryMultipleTimes(closure, expected) {
         def counter = 0
         while (counter < 5) {

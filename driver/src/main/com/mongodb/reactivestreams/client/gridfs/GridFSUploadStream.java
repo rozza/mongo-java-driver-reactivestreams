@@ -27,7 +27,7 @@ import org.reactivestreams.Publisher;
  * <p>Provides the {@code id} for the file to be uploaded as well as the {@code write} methods of a {@link AsyncOutputStream}</p>
  *
  * @since 1.3
- * @deprecated use {@link GridFSUploadPublisher } instead
+ * @deprecated use {@link GridFSUploadPublisher} instead
  */
 @Deprecated
 public interface GridFSUploadStream extends AsyncOutputStream {
@@ -51,6 +51,8 @@ public interface GridFSUploadStream extends AsyncOutputStream {
     /**
      * Aborts the upload and deletes any data.
      *
+     * <p>Note: With the {@link GridFSUploadPublisher} cancelling the subscription before finishing the upload will abort and cleanup any
+     * uploaded data. </p>
      * @return a publisher with a single element, signifying the abort and cleanup has finished
      */
     Publisher<Success> abort();
