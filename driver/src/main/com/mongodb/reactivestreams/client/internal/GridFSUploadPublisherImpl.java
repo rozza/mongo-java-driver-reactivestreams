@@ -57,6 +57,7 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
         /* protected by `this` */
         private long requested = 0;
         private boolean hasCompleted;
+        private boolean unsubscribed;
         private Action currentAction = Action.WAITING;
         private Subscription sourceSubscription;
         /* protected by `this` */
@@ -130,6 +131,9 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
                             if (hasCompleted) {
                                 currentAction = Action.COMPLETE;
                             }
+                            if (unsubscribed) {
+                                currentAction = Action.TERMINATE;
+                            }
                             if (currentAction != Action.COMPLETE && currentAction != Action.TERMINATE && currentAction != Action.FINISHED) {
                                 currentAction = Action.WAITING;
                             }
@@ -150,6 +154,9 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
 
         @Override
         public void cancel() {
+            synchronized (this) {
+                unsubscribed = true;
+            }
             terminate();
         }
 
@@ -164,7 +171,6 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
                             nextStep = NextStep.SUBSCRIBE;
                             currentAction = Action.IN_PROGRESS;
                         } else {
-                            requested--;
                             nextStep = NextStep.WRITE;
                             currentAction = Action.IN_PROGRESS;
                         }
@@ -198,6 +204,9 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
                     gridFSUploadStream.close().subscribe(new Subscriber<Success>() {
                         @Override
                         public void onSubscribe(final Subscription s) {
+                            synchronized (this) {
+                                requested--;
+                            }
                             s.request(1);
                         }
 
@@ -221,6 +230,9 @@ public class GridFSUploadPublisherImpl implements GridFSUploadPublisher<Success>
                     gridFSUploadStream.abort().subscribe(new Subscriber<Success>() {
                         @Override
                         public void onSubscribe(final Subscription s) {
+                            synchronized (this) {
+                                requested--;
+                            }
                             s.request(1);
                         }
 

@@ -127,6 +127,7 @@ public class GridFSDownloadPublisherImpl implements GridFSDownloadPublisher {
                     synchronized (GridFSDownloadSubscription.this) {
                         hasTerminated = currentAction == Action.TERMINATE || currentAction == Action.FINISHED;
                         if (!hasTerminated) {
+                            requested--;
                             currentAction = Action.WAITING;
                             if (sizeRead == gridFSFile.getLength()) {
                                 currentAction = Action.COMPLETE;
@@ -169,7 +170,6 @@ public class GridFSDownloadPublisherImpl implements GridFSDownloadPublisher {
                             nextStep = NextStep.COMPLETE;
                             currentAction = Action.FINISHED;
                         } else {
-                            requested--;
                             nextStep = NextStep.READ;
                             currentAction = Action.IN_PROGRESS;
                         }

@@ -247,8 +247,8 @@ public final class Fixture {
             return await(timeout, unit).getReceived();
         }
 
-        public ObservableSubscriber<T> await(final long timeout, final TimeUnit unit) throws Throwable {
-            subscription.request(Integer.MAX_VALUE);
+        public ObservableSubscriber<T> await(final int request, final long timeout, final TimeUnit unit) throws Throwable {
+            subscription.request(request);
             if (!latch.await(timeout, unit)) {
                 throw new MongoTimeoutException("Publisher onComplete timed out");
             }
@@ -256,6 +256,10 @@ public final class Fixture {
                 throw errors.get(0);
             }
             return this;
+        }
+
+        public ObservableSubscriber<T> await(final long timeout, final TimeUnit unit) throws Throwable {
+            return await(Integer.MAX_VALUE, timeout, unit);
         }
     }
 
